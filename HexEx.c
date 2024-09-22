@@ -1,14 +1,14 @@
 /*
- * kk_ihex_write.c: A simple library for writing the Intel HEX (IHEX) format.
+ * HexEx.c: A simple library for writing the Intel HEX (IHEX) format.
  *
- * See the header `kk_ihex.h` for instructions.
+ * See the header `Hex.h` for instructions.
  *
  * Copyright (c) 2013-2019 Kimmo Kulovesi, https://arkku.com/
  * Provided with absolutely no warranty, use at your own risk only.
  * Use and distribute freely, mark modified copies as such.
  */
 
-#include "kk_ihex_write.h"
+#include "HexEx.h"
 
 #define IHEX_START ':'
 

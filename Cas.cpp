@@ -9,8 +9,8 @@
 #include <cstring>
 #include <limits.h>
 
-#include "kk_ihex_write.h"
-#include "z80_assembler.h"
+#include "HexEx.h"
+#include "Cas.h"
 
 uint32_t PC;     // current address
 uint32_t nextPC; // remember address

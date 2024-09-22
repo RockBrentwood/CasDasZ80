@@ -1,5 +1,5 @@
 /*
- * kk_ihex.h: A simple library for reading and writing the Intel HEX
+ * Hex.h: A simple library for reading and writing the Intel HEX
  * or IHEX format. Intended mainly for embedded systems, and thus
  * somewhat optimised for size at the expense of error handling and
  * generality.
@@ -9,8 +9,8 @@
  *
  * The library has been split into read and write parts, which use a
  * common data structure (`struct ihex_state`), but each can be used
- * independently. Include the header `kk_ihex_read.h` for reading, and/or
- * the header `kk_ihex_write.h` for writing (and link with their respective
+ * independently. Include the header `HexIn.h` for reading, and/or
+ * the header `HexEx.h` for writing (and link with their respective
  * object files). Both can be used simultaneously - this header defines
  * the shared data structures and definitions.
  *
@@ -23,7 +23,7 @@
  * passed to `ihex_read_byte` and/or `ihex_read_bytes`. The reading functions
  * will then call `ihex_data_read`, at which stage the `struct ihex_state`
  * structure will contain the data along with its address. See the header
- * `kk_ihex_read.h` for details and example implementation of `ihex_data_read`.
+ * `HexIn.h` for details and example implementation of `ihex_data_read`.
  *
  * The sequence to read data in IHEX format is:
  *      struct ihex_state ihex;
@@ -42,7 +42,7 @@
  * `ihex_flush_buffer` whenever the internal write buffer needs to be
  * cleared - it is up to the caller to provide an implementation of
  * `ihex_flush_buffer` to do the actual writing. See the header
- * `kk_ihex_write.h` for details and an example implementation.
+ * `HexEx.h` for details and an example implementation.
  *
  * See the declaration further down for an example implementation.
  *
@@ -103,13 +103,12 @@
  * Use and distribute freely, mark modified copies as such.
  */
 
-#ifndef KK_IHEX_H
-#define KK_IHEX_H
+#ifndef HexH
+#define HexH
 
 #define KK_IHEX_VERSION "2019-08-07"
 
 #include <stdint.h>
-
 #ifdef IHEX_USE_STDBOOL
 #include <stdbool.h>
 typedef bool ihex_bool_t;
@@ -187,6 +186,6 @@ typedef uint8_t ihex_record_type_t;
 #define IHEX_NEWLINE_STRING "\n"
 #endif
 
-// See kk_ihex_read.h and kk_ihex_write.h for function declarations!
+// See HexIn.h and HexEx.h for function declarations!
 
-#endif // !KK_IHEX_H
+#endif // !HexH

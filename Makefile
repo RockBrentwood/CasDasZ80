@@ -4,23 +4,23 @@ RM=rm -f
 
 CFLAGS=-I. -Wall
 
-DEPS = z80_assembler.h kk_ihex_read.h kk_ihex_write.h Makefile
+DEPS = Cas.h HexIn.h HexEx.h Makefile
 
 %.o: %.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: z80assembler z80disassembler
-z80assembler: z80_assembler.o z80_tokenize.o z80_compile.o z80_calc.o kk_ihex_write.o
+all: CasZ80 DasZ80
+CasZ80: Cas.o Lex.o Syn.o Exp.o HexEx.o
 	$(CC) -o $@ $^ $(CFLAGS)
-z80disassembler: z80_disassembler.o kk_ihex_read.o
+DasZ80: Das.o HexIn.o
 	$(CC) -o $@ $^ $(CFLAGS)
 
-Z80.s:	Z80.bin z80disassembler
-	./z80disassembler Z80.bin Z80.s
-Z80.hex: Z80.asm z80assembler
-	./z80assembler Z80.asm
+Z80.s:	Z80.bin DasZ80
+	./DasZ80 Z80.bin Z80.s
+Z80.hex: Z80.asm CasZ80
+	./CasZ80 Z80.asm
 
 detest: Z80.s
 	diff Z80.s Z80.asm
@@ -35,5 +35,5 @@ cleantest:
 	$(RM) Z80.hex
 	$(RM) Z80.z80
 clobber: clean cleantest
-	$(RM) z80assembler
-	$(RM) z80disassembler
+	$(RM) CasZ80
+	$(RM) DasZ80

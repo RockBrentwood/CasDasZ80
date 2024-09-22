@@ -1,6 +1,6 @@
 /*
- * kk_ihex_read.h: A simple library for reading Intel HEX data. See
- * the accompanying kk_ihex_write.h for IHEX write support.
+ * HexIn.h: A simple library for reading Intel HEX data. See
+ * the accompanying HexEx.h for IHEX write support.
  *
  *
  *      READING INTEL HEX DATA
@@ -36,8 +36,8 @@
  * Use and distribute freely, mark modified copies as such.
  */
 
-#ifndef KK_IHEX_READ_H
-#define KK_IHEX_READ_H
+#ifndef HexInH
+#define HexInH
 
 #ifdef __cplusplus
 #ifndef restrict
@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 
-#include "kk_ihex.h"
+#include "Hex.h"
 
 // Begin reading at address 0
 void ihex_begin_read( struct ihex_state *ihex );
@@ -112,4 +112,4 @@ void ihex_read_at_segment( struct ihex_state *ihex, ihex_segment_t segment );
 #ifdef __cplusplus
 }
 #endif
-#endif // !KK_IHEX_READ_H
+#endif // !HexInH

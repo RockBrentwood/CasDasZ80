@@ -30,7 +30,7 @@ for a Z80, because the standard Z80 only supports 64k.
 This program is freeware. It is not allowed to be used as a base for a commercial product!
  ***/
 
-#include "kk_ihex_read.h"
+#include "HexIn.h"
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
@@ -1033,7 +1033,7 @@ static bool load_bin( char *path, uint32_t offset ) {
 }
 
 
-// callback from kk_ihex_read.c when data has arrived
+// callback from HexIn.c when data has arrived
 ihex_bool_t ihex_data_read( struct ihex_state *ihex, ihex_record_type_t type, ihex_bool_t error ) {
     static uint32_t hex_data_size = 0;
     error = error || ( ihex->length < ihex->line_length );

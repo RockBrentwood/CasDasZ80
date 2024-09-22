@@ -1,7 +1,7 @@
 /*
- * kk_ihex_write.h: A simple library for writing Intel HEX data.
- * See the accompanying kk_ihex_read.h for read support, and the
- * main header kk_ihex.h for the shared parts.
+ * HexEx.h: A simple library for writing Intel HEX data.
+ * See the accompanying HexIn.h for read support, and the
+ * main header Hex.h for the shared parts.
  *
  *
  *      WRITING BINARY DATA AS INTEL HEX
@@ -70,8 +70,8 @@
  * Use and distribute freely, mark modified copies as such.
  */
 
-#ifndef KK_IHEX_WRITE_H
-#define KK_IHEX_WRITE_H
+#ifndef HexExH
+#define HexExH
 
 #ifdef __cplusplus
 #ifndef restrict
@@ -82,7 +82,7 @@ extern "C" {
 #define restrict
 #endif
 
-#include "kk_ihex.h"
+#include "Hex.h"
 
 // Default number of data bytes written per line
 #if IHEX_LINE_MAX_LENGTH >= 32
@@ -164,4 +164,4 @@ void ihex_set_output_line_length( struct ihex_state *ihex, uint8_t line_length )
 #ifdef __cplusplus
 }
 #endif
-#endif // !KK_IHEX_WRITE_H
+#endif // !HexExH

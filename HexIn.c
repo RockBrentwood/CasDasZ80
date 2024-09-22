@@ -1,14 +1,14 @@
 /*
- * kk_ihex_read.c: A simple library for reading the Intel HEX (IHEX) format.
+ * HexIn.c: A simple library for reading the Intel HEX (IHEX) format.
  *
- * See the header `kk_ihex.h` for instructions.
+ * See the header `Hex.h` for instructions.
  *
  * Copyright (c) 2013-2019 Kimmo Kulovesi, https://arkku.com/
  * Provided with absolutely no warranty, use at your own risk only.
  * Use and distribute freely, mark modified copies as such.
  */
 
-#include "kk_ihex_read.h"
+#include "HexIn.h"
 
 #define IHEX_START ':'
 
