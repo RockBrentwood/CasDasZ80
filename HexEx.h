@@ -1,4 +1,4 @@
-// HexEx.h: A simple library for writing Intel HEX data.
+// A simple library for writing Intel HEX data.
 // See the accompanying HexIn.h for read support, and the main header Hex.h for the shared parts.
 //
 // Writing binary data as Intel Hex
@@ -68,7 +68,7 @@ extern "C" {
 #endif
 
 // Length of the write buffer required
-#define HexExMax (1 + 2 + 4 + 2 + (HexExLineMax*2) + 2 + sizeof(HexNL))
+#define HexExMax (1 + 2 + 4 + 2 + (HexExLineMax*2) + 2 + sizeof HexNL)
 
 #ifdef HexNoExBuf
 // Define HexNoExBuf to provide an external write buffer, as char *HexExBuf,
@@ -76,20 +76,20 @@ extern "C" {
 extern char *HexExBuf;
 #endif
 
-// Initialise the structure Qh for writing
+// Initialise the structure Qh for writing.
 void HexExBeg(struct HexQ *Qh);
 
 // Begin writing at the given 32-bit Addr after writing any pending data at the current address.
 // This can also be used to skip to a new address without calling HexExEnd; this allows writing sparse output.
 void HexPutAtAddr(struct HexQ *Qh, HexAddressT Addr);
 
-// Write a single byte
+// Write a single byte.
 void HexPut1(struct HexQ *Qh, int Ch);
 
-// Write ExN bytes from ExBuf
+// Write ExN bytes from ExBuf.
 void HexPut(struct HexQ *restrict Qh, const void *restrict ExBuf, HexInt ExN);
 
-// End writing (flush buffers, write end of file record)
+// End writing (flush buffers, write end of file record).
 void HexExEnd(struct HexQ *Qh);
 
 // Called whenever the global, internal write buffer needs to be flushed by the write functions.
@@ -98,8 +98,7 @@ void HexExEnd(struct HexQ *Qh);
 //
 // Example implementation:
 //	void HexExFlush(struct HexQ *Qh, char *ExBuf, char *EndP) {
-//		*EndP = '\0';
-//		(void)fputs(ExBuf, stdout);
+//		*EndP = '\0', fputs(ExBuf, stdout);
 //	}
 // Note that the contents of ExBuf can become invalid immediately after this function returns - the data must be copied if it needs to be preserved!
 void HexExFlush(struct HexQ *Qh, char *ExBuf, char *EndP);

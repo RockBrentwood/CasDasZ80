@@ -2,7 +2,7 @@ CC=gcc
 # CC=clang
 RM=rm -f
 
-CFLAGS=-I. -Wall
+CFLAGS=-I. ## -Wall
 
 DEPS = Cas.h HexIn.h HexEx.h Makefile
 

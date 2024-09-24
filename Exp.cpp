@@ -1,11 +1,11 @@
-// Calculate a formula
+// Expression parser and calculator.
 #include "Cas.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 static SymbolP ErrSymbol;
-PatchListP LastPatch; // to patch the type for incomplete formulas
+PatchListP LastPatch; // To patch the type for incomplete formulas.
 
 // Indirect recursion.
 static int32_t GetExp0(CommandP &Cmd);
@@ -14,142 +14,103 @@ static int32_t GetExp0(CommandP &Cmd);
 static int32_t GetExp3(CommandP &Cmd) {
    int32_t Value = 0;
    switch (Cmd->Type) {
-      case NumL:
-         Value = Cmd->Value;
-      break;
+      case NumL: Value = Cmd->Value; break;
       case SymL: {
-         SymbolP Sym = (SymbolP)Cmd->Value; // Symbol ptr is in the value
-         Value = Sym->Value; // value of the symbol
-         if (!Sym->Defined) { // is the symbol defined?
-            if (!ErrSymbol) // Already an undefined symbol?
-               ErrSymbol = Sym; // remember this symbol, if not
-         }
+      // Dereference the symbol.
+         SymbolP Sym = (SymbolP)Cmd->Value;
+         Value = Sym->Value;
+      // Mark it, if it is the first undefined symbol.
+         if (!Sym->Defined && ErrSymbol == nullptr) ErrSymbol = Sym;
       }
       break;
       case OpL:
          if (Cmd->Value == '(') {
-            Cmd++; // Skip opening bracket
-            Value = GetExp0(Cmd);
-            if ((Cmd->Type != OpL) || (Cmd->Value != ')')) {
-               Error("Closing bracket is missing");
-            }
-         } else
+         // Skip '(', get the embedded expression and check for ')'.
+            Cmd++, Value = GetExp0(Cmd);
+            if (Cmd->Type != OpL || Cmd->Value != ')') Error("Closing bracket is missing");
+            break;
+         }
       default:
          Error("Illegal symbol in a formula");
    }
-   Cmd++; // skip value, symbol or bracket
+   Cmd++; // Skip value, symbol or bracket.
    return Value;
 }
 
-// interpret a sign
+// Interpret a sign.
 static int32_t GetExp2(CommandP &Cmd) {
-   bool HasNeg = false;
-   bool HasNot = false;
+   bool HasNeg = false, HasNot = false;
    if (Cmd->Type == OpL) {
-      if (Cmd->Value == '-') {
-         Cmd++; // skip the sign
-         HasNeg = true; // negative operator detected
-      } else if (Cmd->Value == '+') {
-         Cmd++; // skip the sign
-      } else if (Cmd->Value == '!') {
-         Cmd++; // skip the sign
-         HasNot = true; // NOT operator detected
-      }
+   // Skip the sign: negative, and tag it.
+      if (Cmd->Value == '-') Cmd++, HasNeg = true;
+   // Skip the sign: positive.
+      else if (Cmd->Value == '+') Cmd++;
+   // Skip the sign: not, and tag it.
+      else if (Cmd->Value == '!') Cmd++, HasNot = true;
    }
    int32_t Value = GetExp3(Cmd);
-   if (HasNeg) // negative operator?
-      Value = -Value; // negate
-   if (HasNot) // NOT operator?
-      Value = !Value; // invertieren
+   if (HasNeg) Value = -Value; // Negative operator: negate.
+   if (HasNot) Value = !Value; // Not operator: invert.
    return Value;
 }
 
-// multiplications, etc.
+// Multiplications, etc.
 static int32_t GetExp1(CommandP &Cmd) {
-   bool DoBreak = false;
    int32_t Value = GetExp2(Cmd);
-   while ((Cmd->Type == OpL) && !DoBreak) {
-      switch (Cmd->Value) {
-         case '*':
-            Cmd++; // skip operator
-            Value *= GetExp2(Cmd); // Multiply
-         break;
-         case '/':
-            Cmd++; // skip operator
-            Value /= GetExp2(Cmd); // Divide
-         break;
-         case '%':
-            Cmd++; // skip operator
-            Value %= GetExp2(Cmd); // Modulo
-         break;
-         case '&':
-            Cmd++; // skip operator
-            Value &= GetExp2(Cmd); // And operator
-         break;
-         default:
-            DoBreak = true;
-      }
+   while (Cmd->Type == OpL) switch (Cmd->Value) {
+   // Skip the operator: multiply.
+      case '*': Cmd++, Value *= GetExp2(Cmd); break;
+   // Skip the operator: divide.
+      case '/': Cmd++, Value /= GetExp2(Cmd); break;
+   // Skip the operator: modulo.
+      case '%': Cmd++, Value %= GetExp2(Cmd); break;
+   // Skip the operator: and.
+      case '&': Cmd++, Value &= GetExp2(Cmd); break;
+      default: goto Break;
    }
+Break:
    return Value;
 }
 
-// addition, etc.
+// Addition, etc.
 static int32_t GetExp0(CommandP &Cmd) {
-   bool DoBreak = false;
    int32_t Value = GetExp1(Cmd);
-   while ((Cmd->Type == OpL) && !DoBreak) {
-      switch (Cmd->Value) {
-         case '+':
-            Cmd++; // skip operator
-            Value += GetExp1(Cmd); // plus
-         break;
-         case '-':
-            Cmd++; // skip operator
-            Value -= GetExp1(Cmd); // minus
-         break;
-         case '|':
-            Cmd++; // skip operator
-            Value |= GetExp2(Cmd); // or
-         break;
-         case '^':
-            Cmd++; // skip operator
-            Value ^= GetExp2(Cmd); // Xor
-         break;
-         case 0x120:
-            Cmd++; // skip operator
-            Value >>= GetExp2(Cmd); // shift to the right
-         break;
-         case 0x121:
-            Cmd++; // skip operator
-            Value <<= GetExp2(Cmd); // shift to the left
-         break;
-         default:
-            DoBreak = true;
-      }
+   while (Cmd->Type == OpL) switch (Cmd->Value) {
+   // Skip the operator: add.
+      case '+': Cmd++, Value += GetExp1(Cmd); break;
+   // Skip the operator: subtract.
+      case '-': Cmd++, Value -= GetExp1(Cmd); break;
+   // Skip the operator: inclusive or.
+      case '|': Cmd++, Value |= GetExp2(Cmd); break;
+   // Skip the operator: exclusive or.
+      case '^': Cmd++, Value ^= GetExp2(Cmd); break;
+   // Skip the operator: shift to the right.
+      case 0x120: Cmd++, Value >>= GetExp2(Cmd); break;
+   // Skip the operator: shift to the left.
+      case 0x121: Cmd++, Value <<= GetExp2(Cmd); break;
+      default: goto Break;
    }
+Break:
    return Value;
 }
 
-// Calculate a formula
+// Calculate an expression.
 int32_t GetExp(CommandP &Cmd) {
    CommandP Cmd0 = Cmd;
-   LastPatch = nullptr; // expression so far ok
-   ErrSymbol = nullptr; // no undefined symbol in formula
+// Clear out the error markers.
+   LastPatch = nullptr, ErrSymbol = nullptr;
    int32_t Value = GetExp0(Cmd);
-   if (ErrSymbol) { // at least one symbol is undefined?
-      int32_t Len = (long)Cmd - (long)Cmd0 + sizeof(Command); // space for the formula and end-marker
-      CommandP NewCmd = (CommandP)malloc(Len); // allocate memory for the formular
-      if (!NewCmd)
-         exit(1); // not enough memory
-      memset(NewCmd, 0, Len); // erase memory
-      memcpy(NewCmd, Cmd0, (long)Cmd - (long)Cmd0); // transfer the formular
-      PatchListP Patch = (PatchListP)malloc(sizeof(PatchList)); // allocate a recalculation list entry
-      Patch->Cmd = NewCmd; // link to the formula
-      Patch->Type = -1; // Type: illegal (because unknown)
-      Patch->Addr = 0; // address to patch = 0
-      Patch->Next = ErrSymbol->Patch;
-      ErrSymbol->Patch = Patch; // link expression to symbol
-      LastPatch = Patch; // save entry to correct the type
+   if (ErrSymbol != nullptr) { // Remedial action, if any subexpression was undefined.
+   // Allocate and check for clear space for the expression and end-marker and populate it.
+      int32_t Len = (long)Cmd - (long)Cmd0 + sizeof *Cmd;
+      CommandP NewCmd = (CommandP)calloc(1, Len); if (NewCmd == nullptr) exit(1);
+      memcpy(NewCmd, Cmd0, (long)Cmd - (long)Cmd0);
+   // Allocate a recalculation list entry.
+      PatchListP Patch = (PatchListP)malloc(sizeof *Patch);
+   // Link it to the expression, with an initially unknown type and zeroed out patch address.
+      Patch->Cmd = NewCmd, Patch->Type = -1, Patch->Addr = 0;
+   // Link expression to the symbol and save the entry to correct the type.
+      Patch->Next = ErrSymbol->Patch, LastPatch = ErrSymbol->Patch = Patch;
    }
    return Value;
 }

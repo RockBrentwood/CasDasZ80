@@ -50,8 +50,8 @@ The assembler allows mathematical expressions in operands:
 	‟&” (and), ‟|” (or), ‟!” (not), ‟^” (xor), ‟<<” (shift left) and ‟>>” (shift right).
 Brackets are also available.
 The expression parser is located in ‟Exp.c”.
-Numbers can be postpended by a ‟D”, ‟H” or ‟B” for decimal, hexadecimal and binary numbers.
-Numbers prepended by a ‟$” are recognized as hex.
+Numerals can be suffixed by a ‟D”, ‟H” or ‟B” for decimal, hexadecimal and binary numerals.
+Numerals prefixed by a ‟$” are recognized as hexadecimal.
 
 The assembler also knows the most commend pseudo opcodes (look into the sourcefile ‟Lex.cpp”):
 ‟;”		This line is a comment.

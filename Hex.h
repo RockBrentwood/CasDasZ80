@@ -1,4 +1,4 @@
-// Hex.h: A simple library for reading and writing the Intel HEX or IHEX format.
+// A simple library for reading and writing the Intel HEX or IHEX format.
 // Intended mainly for embedded systems, and thus somewhat optimised for size at the expense of error handling and generality.
 //
 // Usage
@@ -15,10 +15,7 @@
 // See the header HexIn.h for details and example implementation of HexGetData.
 //
 // The sequence to read data in IHEX format is:
-//	struct HexQ Qb;
-//	HexInBeg(&Qb);
-//	HexGet(&Qb, InBuf, InN);
-//	HexInEnd(&Qb);
+//	struct HexQ Qb; HexInBeg(&Qb), HexGet(&Qb, InBuf, InN), HexInEnd(&Qb);
 //
 // Writing binary data as Intel Hex
 // ────────────────────────────────
@@ -31,11 +28,7 @@
 // See the declaration further down for an example implementation.
 //
 // The sequence to write data in IHEX format is:
-//	struct HexQ Qb;
-//	HexExBeg(&Qb);
-//	HexPutAtAddr(&Qb, 0);
-//	HexPut(&Qb, ExBuf, ExN);
-//	HexExEnd(&Qb);
+//	struct HexQ Qb; HexExBeg(&Qb), HexPutAtAddr(&Qb, 0), HexPut(&Qb, ExBuf, ExN), HexExEnd(&Qb);
 // For outputs larger than 64KiB, 32-bit linear addresses are output.
 // Normally the initial linear extended address record of zero is NOT written - it can be forced by setting Qh->Flags |= HexAddrOverflowFlag before writing the first byte.
 //
@@ -99,37 +92,32 @@ struct HexQ {
    HexSegmentT Segment;
 #endif
    HexFlagsT Flags;
-   uint8_t LineN;
-   uint8_t Length;
-   uint8_t Line[HexLineMax + 1];
+   uint8_t LineN, Length, Line[HexLineMax + 1];
 };
 
 enum HexRecord {
-   HexLineRec,
-   HexEndRec,
-   HexSegRec,
-   HexStartSegRec,
-   HexAddrRec,
-   HexStartAddrRec
+   HexLineRec, HexEndRec,
+   HexSegRec, HexStartSegRec,
+   HexAddrRec, HexStartAddrRec
 };
 typedef uint8_t HexRecordT;
 
 #ifndef HexFlatAddresses
 // Resolve segmented address (if any).
 // It is the author's recommendation that segmented addressing not be used (and indeed the write function of this library uses linear 32-bit addressing unless manually overridden).
-#   define HexAddress(Qh) ((Qh)->Address + (((HexAddressT)((Qh)->Segment)) << 4))
+#   define HexAddress(Qh) ((Qh)->Address + (((HexAddressT)(Qh)->Segment) << 4))
 // Note that segmented addressing with the above macro is not strictly adherent to the IHEX specification,
 // which mandates that the lowest 16 bits of the address and the index of the data byte must be added modulo 64K
 // (i.e., at 16 bits precision with wraparound) and the segment address only added afterwards.
 //
 // To implement fully correct segmented addressing, compute the address of _each byte_ with its index in Line as follows:
-#   define HexByteAddress(Qh, Index) ((((Qh)->Address + (Index))&0xffffU) + (((HexAddressT)((Qh)->Segment)) << 4))
+#   define HexByteAddress(Qh, Index) ((((Qh)->Address + (Index))&0xffffU) + (((HexAddressT)(Qh)->Segment) << 4))
 #else // HexFlatAddresses:
 #   define HexAddress(Qh) ((Qh)->Address)
 #   define HexByteAddress(Qh, Index) ((Qh)->Address + (Index))
 #endif
 
-// The newline string (appended to every output line, e.g., "\r\n")
+// The newline string (appended to every output line, e.g., "\r\n").
 #ifndef HexNL
 #   define HexNL "\n"
 #endif

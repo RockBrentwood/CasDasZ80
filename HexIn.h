@@ -1,4 +1,4 @@
-// HexIn.h: A simple library for reading Intel HEX data.
+// A simple library for reading Intel HEX data.
 // See the accompanying HexEx.h for IHEX write support.
 //
 // Reading Intel Hex data
@@ -38,20 +38,20 @@ extern "C" {
 
 #include "Hex.h"
 
-// Begin reading at address 0
+// Begin reading at address 0.
 void HexInBeg(struct HexQ *Qh);
 
 // Begin reading at Addr (the lowest 16 bits of which will be ignored);
-// this is required only if the high bytes of the 32-bit starting address are not specified in the input data and they are non-zero
+// this is required only if the high bytes of the 32-bit starting address are not specified in the input data and they are non-zero.
 void HexGetAtAddr(struct HexQ *Qh, HexAddressT Addr);
 
 // Read a single character
 void HexGet1(struct HexQ *Qh, char Ch);
 
-// Read InN bytes from InBuf
+// Read InN bytes from InBuf.
 void HexGet(struct HexQ *restrict Qh, const char *restrict InBuf, HexInt InN);
 
-// End reading (may call HexGetData if there is data waiting)
+// End reading (may call HexGetData if there is data waiting).
 void HexInEnd(struct HexQ *Qh);
 
 // Called when a complete line has been read, the record type of which is passed as Type.
@@ -67,13 +67,11 @@ void HexInEnd(struct HexQ *Qh);
 //
 // Example implementation:
 //	HexBool HexGetData(struct HexQ *Qh, HexRecordT Type, HexBool Error) {
-//		Error = Error || (Qh->Length < Qh->LineN);
-//		if (Type == HexLineRec && !Error) {
-//			(void)fseek(OutFile, HexAddress(Qh), SEEK_SET);
-//			(void)fwrite(Qh->Line, 1, Qh->Length, OutFile);
-//		} else if (Type == HexEndRec) {
-//			(void)fclose(OutFile);
-//		}
+//		Error = Error || Qh->Length < Qh->LineN;
+//		if (Type == HexLineRec && !Error)
+//			fseek(OutFile, HexAddress(Qh), SEEK_SET), fwrite(Qh->Line, 1, Qh->Length, OutFile);
+//		else if (Type == HexEndRec)
+//			fclose(OutFile);
 //		return !Error;
 //	}
 HexBool HexGetData(struct HexQ *Qh, HexRecordT Type, HexBool Error);
