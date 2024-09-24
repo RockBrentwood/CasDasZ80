@@ -6,11 +6,11 @@
 #include <cstring>
 
 // clang-format off
-typedef struct {
+struct ShortSym {
    int16_t id; // ID for the symbol
    const char *s; // string
    uint16_t p; // additional parameter
-} ShortSym;
+};
 
 static const ShortSym Pseudo[] = {
    { DEFB, "DEFB", 0x0000 }, { DEFB, "DB", 0x0000 },
@@ -88,10 +88,10 @@ static const ShortSym Conditions[] = {
    { 0x404, "PO", 0x0000 }, { 0x401, "Z", 0x0000 }
 };
 
-typedef struct {
+struct TokenTable {
    const ShortSym *table; // ptr to an opcode list
    int16_t tablesize; // length of the table in bytes
-} TokenTable;
+};
 
 static const TokenTable Token[] = {
    { Pseudo, sizeof Pseudo/sizeof(ShortSym) },

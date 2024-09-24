@@ -5,18 +5,18 @@
 #include <cstring>
 
 // get operands for an opcode
-static int16_t GetOperand(CommandP *c, int32_t *value) {
+static int16_t GetOperand(CommandP &c, int32_t *value) {
    int16_t typ;
    int16_t val, sval;
    LastRecalc = nullptr; // (to be safe: reset recalc entry)
    *value = 0;
-   typ = (*c)->typ;
-   val = (*c)++->val; // get value and type
+   typ = c->typ;
+   val = c++->val; // get value and type
    MSG(2, "GetOperand( %d, %X, %d )\n", typ, val, *value);
    if (typ == OPCODE) {
       if ((val >= 0x300) && (val <= 0x4ff)) {
-         if ((val == 0x323) && ((*c)->typ == OPCODE) && ((*c)->val == '\'')) { // AF'?
-            (*c)++; // skip '
+         if ((val == 0x323) && (c->typ == OPCODE) && (c->val == '\'')) { // AF'?
+            c++; // skip '
             val = 0x324; // AF' returned
          }
          return val; // register or condition
@@ -24,12 +24,12 @@ static int16_t GetOperand(CommandP *c, int32_t *value) {
       if ((val >= 0x100) && (val <= 0x2ff)) // an opcode
          Error("Illegal operand");
       if ((val == '(') != 0) { // indirect addressing?
-         typ = (*c)->typ;
-         sval = (*c)++->val; // get value and type
+         typ = c->typ;
+         sval = c++->val; // get value and type
          if (typ == OPCODE) {
             if (((sval&0xff0) == 0x310) || (sval == 0x301)) { // register
-               typ = (*c)->typ;
-               val = (*c)++->val; // get value and type
+               typ = c->typ;
+               val = c++->val; // get value and type
                if ((typ == OPCODE) && (val == ')')) {
                   if (sval == 0x312) // (HL)?
                      return 0x306; // to combine them easier
@@ -38,18 +38,18 @@ static int16_t GetOperand(CommandP *c, int32_t *value) {
                Error("Closing bracket missing after (BC,(DE,(HL or (SP");
             }
             if ((sval&0xff0) == 0x330) { // IX,IY
-               if ((*c)->typ == OPCODE) { // does an operator follow?
-                  val = (*c)->val;
+               if (c->typ == OPCODE) { // does an operator follow?
+                  val = c->val;
                   if ((val == '+') || (val == '-')) {
                      *value = CalcTerm(c);
-                     typ = (*c)->typ;
-                     val = (*c)++->val; // get a braket
+                     typ = c->typ;
+                     val = c++->val; // get a braket
                      if ((typ == OPCODE) && (val == ')'))
                         return sval + 0x300; // (IX+d) or (IY+d)
                      Error("Closing bracket missing after (IX or (IY");
                   } else {
                      if ((typ == OPCODE) && (val == ')')) {
-                        (*c)++; // skip the bracket
+                        c++; // skip the bracket
                         return sval + 0x200; // (IX) or (IY)
                      }
                      Error("Closing bracket missing after (IX or (IY");
@@ -58,24 +58,23 @@ static int16_t GetOperand(CommandP *c, int32_t *value) {
                   Error("Illegal character after (IX or (IY");
             }
          }
-         (*c)--; // Ptr auf das vorherige Zeichen zurück
+         c--; // Ptr auf das vorherige Zeichen zurück
          *value = CalcTerm(c);
-         typ = (*c)->typ;
-         val = (*c)++->val; // get the closing bracket
+         typ = c->typ;
+         val = c++->val; // get the closing bracket
          if ((typ == OPCODE) && (val == ')'))
             return 0x280; // (Adr)
          Error("Closing bracket missing after (adr)");
       }
    } // absolute addressing
-   (*c)--; // return to the previous token
+   c--; // return to the previous token
    *value = CalcTerm(c);
    return 0x281; // return an address
 }
 
 // test for an opcode
-static void DoOpcode(CommandP *cp) {
-   MSG(2, "DoOpcode( %X )\n", (*cp)->val);
-   CommandP c = *cp;
+static void DoOpcode(CommandP &c) {
+   MSG(2, "DoOpcode( %X )\n", c->val);
    uint8_t *iRAM = RAM + PC;
    uint32_t op0;
    uint8_t Op0_24, Op0_16;
@@ -86,11 +85,11 @@ static void DoOpcode(CommandP *cp) {
    op0 = c++->val; // opcode
    op1 = op2 = 0;
    if (c->typ) {
-      op1 = GetOperand(&c, &value1); // get 1. operand
+      op1 = GetOperand(c, &value1); // get 1. operand
       op1Recalc = LastRecalc; // store Recalc ptr for 1. operand
       if ((c->typ == OPCODE) && (c->val == ',')) { // get a potential 2. operand
          c++;
-         op2 = GetOperand(&c, &value2); // get the 2. operand
+         op2 = GetOperand(c, &value2); // get the 2. operand
          op2Recalc = LastRecalc; // store Recalc ptr for 2. operand
       }
    }
@@ -836,7 +835,6 @@ static void DoOpcode(CommandP *cp) {
          while (c->typ)
             c++;
    }
-   *cp = c;
    PC = iRAM - RAM; // PC -> next opcode
    checkPC(PC - 1); // last RAM position used
 }
@@ -844,10 +842,8 @@ static void DoOpcode(CommandP *cp) {
 // test for pseudo-opcodes
 static bool IgnoreUntilIF = false; // ignore all lines till next "ENDIF" (this could be a stack for nesting support)
 
-static void DoPseudo(CommandP *cp) {
-   MSG(2, "DoPseudo( %d, %X )\n", (*cp)->typ, (*cp)->val);
-   CommandP c = *cp;
-   CommandP cptr;
+static void DoPseudo(CommandP &c) {
+   MSG(2, "DoPseudo( %d, %X )\n", c->typ, c->val);
    uint16_t iPC = PC;
    switch (c++->val) { // all pseudo opcodes
       case DEFB:
@@ -856,10 +852,8 @@ static void DoPseudo(CommandP *cp) {
          do {
             c++; // skip opcode or comma
             if (c->typ != STRING) {
-               cptr = c;
                checkPC(iPC);
-               RAM[iPC++] = CalcTerm(&cptr);
-               c = cptr;
+               RAM[iPC++] = CalcTerm(c);
                if (LastRecalc) { // expression undefined?
                   LastRecalc->typ = 0; // add a single byte
                   LastRecalc->adr = iPC - 1;
@@ -874,9 +868,7 @@ static void DoPseudo(CommandP *cp) {
          } while ((c->typ == OPCODE) && (c->val == ','));
       break;
       case DEFS:
-         cptr = c;
-         iPC += CalcTerm(&cptr); // advance the PC
-         c = cptr;
+         iPC += CalcTerm(c); // advance the PC
          if (LastRecalc)
             Error("symbol not defined");
       break;
@@ -885,9 +877,7 @@ static void DoPseudo(CommandP *cp) {
          do {
             uint32_t val;
             c++;
-            cptr = c;
-            val = CalcTerm(&cptr); // evaluate the express
-            c = cptr;
+            val = CalcTerm(c); // evaluate the express
             if (LastRecalc) { // expression undefined?
                LastRecalc->typ = 1; // add two bytes
                LastRecalc->adr = iPC;
@@ -903,17 +893,13 @@ static void DoPseudo(CommandP *cp) {
          Error("Reached the end of the source code -> exit");
       exit(0);
       case ORG:
-         cptr = c;
-         iPC = CalcTerm(&cptr); // set the PC
-         c = cptr;
+         iPC = CalcTerm(c); // set the PC
          if (LastRecalc)
             Error("symbol not defined");
       break;
       case IF:
-         cptr = c;
-         if (!CalcTerm(&cptr)) // IF condition false?
+         if (!CalcTerm(c)) // IF condition false?
             IgnoreUntilIF = true; // then ignore the next block
-         c = cptr;
       break;
       case ENDIF:
          IgnoreUntilIF = false; // never ignore from here on
@@ -928,7 +914,6 @@ static void DoPseudo(CommandP *cp) {
             puts((char *)c++->val); // print a message
       break;
    }
-   *cp = c;
    PC = iPC;
 }
 
@@ -936,7 +921,6 @@ static void DoPseudo(CommandP *cp) {
 void CompileLine(void) {
    MSG(2, "CompileLine()\n");
    CommandP c = Cmd;
-   CommandP cptr;
    SymbolP s;
    uint16_t val;
    if (!c->typ)
@@ -952,9 +936,7 @@ void CompileLine(void) {
          c++; // ignore a ":" after a symbol
       if ((c->typ == OPCODE) && (c->val == 0x105)) { // EQU?
          c++; // skip EQU
-         cptr = c;
-         s->val = CalcTerm(&cptr); // calculate the expression
-         c = cptr;
+         s->val = CalcTerm(c); // calculate the expression
          if (LastRecalc)
             Error("symbol not defined in a formula");
          s->defined = true; // symbol now defined
@@ -972,7 +954,7 @@ void CompileLine(void) {
          int32_t value;
          s->recalc = r->next; // to the next symbol
          saveC = r->c;
-         value = CalcTerm(&(r->c)); // Recalculate the symbol (now with the defined symbol)
+         value = CalcTerm(r->c); // Recalculate the symbol (now with the defined symbol)
          if (!LastRecalc) { // Is the expression now valid? (or is there another open dependency?)
             uint16_t adr = r->adr;
             switch (r->typ) {
@@ -1017,11 +999,9 @@ void CompileLine(void) {
          val = c->val;
          if ((val < 0x100) || (val > 0x2ff)) // no Opcode or Pseudo-Opcode?
             Error("Illegal token"); // => error
-         cptr = c;
          if ((val >= 0x100) && (val <= 0x1ff)) // Pseudo-Opcode
-            DoPseudo(&cptr);
+            DoPseudo(c);
          else
-            DoOpcode(&cptr); // opcode
-         c = cptr;
+            DoOpcode(c); // opcode
       }
 }

@@ -93,7 +93,7 @@ enum ihex_flags {
 };
 typedef uint8_t ihex_flags_t;
 
-typedef struct ihex_state {
+struct ihex_state {
    ihex_address_t address;
 #ifndef IHEX_DISABLE_SEGMENTS
    ihex_segment_t segment;
@@ -102,7 +102,7 @@ typedef struct ihex_state {
    uint8_t line_length;
    uint8_t length;
    uint8_t data[IHEX_LINE_MAX_LENGTH + 1];
-} kk_ihex_t;
+};
 
 enum ihex_record_type {
    IHEX_DATA_RECORD,

@@ -8,18 +8,18 @@ static SymbolP ErrSymbol;
 RecalcListP LastRecalc; // to patch the type for incomplete formulas
 
 // Indirect recursion.
-static int32_t GetCalcTerm(CommandP *c);
+static int32_t GetCalcTerm(CommandP &c);
 
 // Get a symbol, number or bracket
-static int32_t GetValue(CommandP *c) {
+static int32_t GetValue(CommandP &c) {
    int32_t value = 0;
    SymbolP s;
-   switch ((*c)->typ) {
+   switch (c->typ) {
       case NUM:
-         value = (*c)->val;
+         value = c->val;
       break;
       case SYMBOL:
-         s = (SymbolP)(*c)->val; // Symbol ptr is in the value
+         s = (SymbolP)c->val; // Symbol ptr is in the value
          value = s->val; // value of the symbol
          if (!s->defined) { // is the symbol defined?
             if (!ErrSymbol) // Already an undefined symbol?
@@ -27,33 +27,33 @@ static int32_t GetValue(CommandP *c) {
          }
       break;
       case OPCODE:
-         if ((*c)->val == '(') {
-            (*c)++; // Skip opening bracket
+         if (c->val == '(') {
+            c++; // Skip opening bracket
             value = GetCalcTerm(c);
-            if (((*c)->typ != OPCODE) || ((*c)->val != ')')) {
+            if ((c->typ != OPCODE) || (c->val != ')')) {
                Error("Closing bracket is missing");
             }
          } else
       default:
          Error("Illegal symbol in a formula");
    }
-   (*c)++; // skip value, symbol or bracket
+   c++; // skip value, symbol or bracket
    return value;
 }
 
 // interpret a sign
-static int32_t GetExpr(CommandP *c) {
+static int32_t GetExpr(CommandP &c) {
    int32_t value;
    bool negOp = false;
    bool notOp = false;
-   if ((*c)->typ == OPCODE) {
-      if ((*c)->val == '-') {
-         (*c)++; // skip the sign
+   if (c->typ == OPCODE) {
+      if (c->val == '-') {
+         c++; // skip the sign
          negOp = true; // negative operator detected
-      } else if ((*c)->val == '+') {
-         (*c)++; // skip the sign
-      } else if ((*c)->val == '!') {
-         (*c)++; // skip the sign
+      } else if (c->val == '+') {
+         c++; // skip the sign
+      } else if (c->val == '!') {
+         c++; // skip the sign
          notOp = true; // NOT operator detected
       }
    }
@@ -66,26 +66,26 @@ static int32_t GetExpr(CommandP *c) {
 }
 
 // multiplications, etc.
-static int32_t GetTerm(CommandP *c) {
+static int32_t GetTerm(CommandP &c) {
    int32_t value;
    bool exit = false;
    value = GetExpr(c);
-   while (((*c)->typ == OPCODE) && !exit) {
-      switch ((*c)->val) {
+   while ((c->typ == OPCODE) && !exit) {
+      switch (c->val) {
          case '*':
-            (*c)++; // skip operator
+            c++; // skip operator
             value *= GetExpr(c); // Multiply
          break;
          case '/':
-            (*c)++; // skip operator
+            c++; // skip operator
             value /= GetExpr(c); // Divide
          break;
          case '%':
-            (*c)++; // skip operator
+            c++; // skip operator
             value %= GetExpr(c); // Modulo
          break;
          case '&':
-            (*c)++; // skip operator
+            c++; // skip operator
             value &= GetExpr(c); // And operator
          break;
          default:
@@ -96,34 +96,34 @@ static int32_t GetTerm(CommandP *c) {
 }
 
 // addition, etc.
-static int32_t GetCalcTerm(CommandP *c) {
+static int32_t GetCalcTerm(CommandP &c) {
    int32_t value;
    bool exit = false;
    value = GetTerm(c);
-   while (((*c)->typ == OPCODE) && !exit) {
-      switch ((*c)->val) {
+   while ((c->typ == OPCODE) && !exit) {
+      switch (c->val) {
          case '+':
-            (*c)++; // skip operator
+            c++; // skip operator
             value += GetTerm(c); // plus
          break;
          case '-':
-            (*c)++; // skip operator
+            c++; // skip operator
             value -= GetTerm(c); // minus
          break;
          case '|':
-            (*c)++; // skip operator
+            c++; // skip operator
             value |= GetExpr(c); // or
          break;
          case '^':
-            (*c)++; // skip operator
+            c++; // skip operator
             value ^= GetExpr(c); // Xor
          break;
          case 0x120:
-            (*c)++; // skip operator
+            c++; // skip operator
             value >>= GetExpr(c); // shift to the right
          break;
          case 0x121:
-            (*c)++; // skip operator
+            c++; // skip operator
             value <<= GetExpr(c); // shift to the left
          break;
          default:
@@ -134,9 +134,9 @@ static int32_t GetCalcTerm(CommandP *c) {
 }
 
 // Calculate a formula
-int32_t CalcTerm(CommandP *c) {
+int32_t CalcTerm(CommandP &c) {
    int32_t value;
-   CommandP cSave = *c;
+   CommandP cSave = c;
    CommandP cp;
    int32_t len;
    RecalcListP r;
@@ -144,12 +144,12 @@ int32_t CalcTerm(CommandP *c) {
    ErrSymbol = nullptr; // no undefined symbol in formula
    value = GetCalcTerm(c);
    if (ErrSymbol) { // at least one symbol is undefined?
-      len = (long)*c - (long)cSave + sizeof(Command); // space for the formula and end-marker
+      len = (long)c - (long)cSave + sizeof(Command); // space for the formula and end-marker
       cp = (CommandP)malloc(len); // allocate memory for the formular
       if (!cp)
          exit(1); // not enough memory
       memset(cp, 0, len); // erase memory
-      memcpy(cp, cSave, (long)*c - (long)cSave); // transfer the formular
+      memcpy(cp, cSave, (long)c - (long)cSave); // transfer the formular
       r = (RecalcListP)malloc(sizeof(RecalcList)); // allocate a recalculation list entry
       r->c = cp; // link to the formula
       r->typ = -1; // type: illegal (because unknown)

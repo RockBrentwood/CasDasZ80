@@ -4,36 +4,38 @@
 
 #include <cstdint>
 
-typedef enum {
+enum Type {
    ILLEGAL,
    NUM, // a normal number
    OPCODE, // an opcode (0…255 = ASCII code, >=256 = opcodes [see below])
    SYMBOL, // a symbol
    STRING // a string
-} Type;
+};
 
-typedef enum { DEFB = 0x100, DEFM, DEFS, DEFW, END, EQU, ORG, IF, ENDIF, ELSE, PRINT } Pseudo_t;
+enum Pseudo_t { DEFB = 0x100, DEFM, DEFS, DEFW, END, EQU, ORG, IF, ENDIF, ELSE, PRINT };
 
 // encoded opcode
-typedef struct {
+typedef struct Command {
    Type typ;
    long val;
-} Command, *CommandP;
+} *CommandP;
 
 // Expression for backpatching
-typedef struct RecalcList {
-   struct RecalcList *next; // next entry in the list
+typedef struct RecalcList *RecalcListP;
+struct RecalcList {
+   RecalcListP next; // next entry in the list
    uint16_t typ; // How should the expression be patched in
 // 0 = 1 byte
 // 1 = 2 byte (low/high!)
 // 2 = 1 byte, PC relative to patch address + 1
    uint32_t adr; // patched address
    CommandP c; // ptr to the formular
-} RecalcList, *RecalcListP;
+};
 
 // entry for the symbol table
-typedef struct Symbol {
-   struct Symbol *next; // next symbol
+typedef struct Symbol *SymbolP;
+struct Symbol {
+   SymbolP next; // next symbol
    uint16_t hash; // hash value for the symbol name
    uint16_t type; // typ: 0 = symbol; <>0 = opcode, etc.
    char name[MAXSYMBOLNAME + 1]; // name of the symbol
@@ -41,7 +43,7 @@ typedef struct Symbol {
    unsigned defined:1; // true, if symbol is defined
    unsigned first:1; // true, if symbol is already valid
    RecalcListP recalc; // expressions depended on this symbol (for backpatching)
-} Symbol, *SymbolP;
+};
 
 // From Lex.cpp:
 extern Command Cmd[80]; // a tokenized line
@@ -51,7 +53,7 @@ void TokenizeLine(char *sp); // tokenize a single line
 
 // From Exp.cpp:
 extern RecalcListP LastRecalc; // to patch the type for incomplete formulas
-int32_t CalcTerm(CommandP *c); // Calculate a formula
+int32_t CalcTerm(CommandP &c); // Calculate a formula
 
 // From Syn.cpp:
 void CompileLine(void); // Compile a single line into machine code

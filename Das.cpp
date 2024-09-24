@@ -60,7 +60,7 @@
 #include <cstdlib>
 #include <cstring>
 
-static const uint32_t CODESIZE = 0x10000;
+const uint32_t CODESIZE = 0x10000;
 
 // memory for the code
 static uint8_t Opcodes[CODESIZE];
@@ -960,7 +960,7 @@ int main(int argc, char *argv[]) {
 //	}
 // reads header of a file and tests if it's Z80 ASM file, reads address
 // return value: 0=OK, 1=this is not a z80 asm file, 2,3=seek malfunction
-static int read_header(FILE *stream, uint32_t *address, uint32_t *len) {
+static int read_header(FILE *stream, uint32_t &address, uint32_t &len) {
    const char *Z80MAGIC = "Z80ASM\032\n";
    char tmp[9];
    unsigned char c[2];
@@ -976,7 +976,7 @@ static int read_header(FILE *stream, uint32_t *address, uint32_t *len) {
    else if (fread(c, 1, 2, stream) != 2)
       ret = 1;
    else {
-      *address = (c[1] << 8) | c[0];
+      address = (c[1] << 8) | c[0];
       a = b + 2;
    }
    if (fseek(stream, 0, SEEK_END))
@@ -984,7 +984,7 @@ static int read_header(FILE *stream, uint32_t *address, uint32_t *len) {
    else if ((b = ftell(stream)) < a)
       ret = 2;
    else
-      *len = b - a;
+      len = b - a;
    if (fseek(stream, a, SEEK_SET))
       ret = 3;
    return ret;
@@ -1008,7 +1008,7 @@ static bool load_bin(char *path, uint32_t offset) {
       fclose(fp);
       return true;
    } else if (strlen(path) > 4 && !strcmp(path + strlen(path) - 4, ".z80")) {
-      int ret = read_header(fp, &offset, &size);
+      int ret = read_header(fp, offset, size);
       if (ret) {
          fprintf(stderr, "Error %d reading z80 file \"%s\"\n", ret, path);
          return false;
