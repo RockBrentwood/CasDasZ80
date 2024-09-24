@@ -165,7 +165,7 @@ void TokenizeLine(char *Line) {
       if (Ch == ';' || Ch == '\0') break; // An end-of-line, possibly preceded by a ';' comment, which is skipped.
       char *LP = Line - 1;	// A pointer to the current token.
       Lexical Type = BadL;	// Token class: default: an illegal type.
-      int16_t Base = 0;		// Numeric base: binary, decimal or hex.
+      int16_t Base = 0;		// Numeric base: binary, octal, decimal or hex.
       bool Dot = false;		// If the token starts with '.'; for pseudo-opcodes.
       bool Dollar = false;	// If the token starts with '$'.
       if (Ch == '.') Ch = *Line++, Dot = true;
@@ -193,6 +193,7 @@ void TokenizeLine(char *Line) {
                else if (NumBuf + 1 != NP) { // At least one character.
                   if (isdigit(LP[0]) && Ch == 'H' && MaxCh <= 'F') Base = 0x10; // Starts with digit and ends with 'H': hex numeral.
                   else if (Ch == 'D' && MaxCh <= '9') Base = 10; // 'D' after a numeral: decimal numeral.
+                  else if ((Ch == 'O' || Ch == 'Q') && MaxCh <= '7') Base = 010; // 'O' or 'Q' after a numeral: octal numeral.
                   else if (Ch == 'B' && MaxCh <= '1') Base = 2; // 'B' after a numeral: binary numeral.
                   if (Base > 0) NP--;
                }
