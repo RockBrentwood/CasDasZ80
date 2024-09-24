@@ -1,8 +1,14 @@
 CasDasZ80
 ━━━━━━━━━
+Included in this repository is the source code for a Z80 assembler and disassembler,
+as well as tables, in HTML, for the opcode formats formats for:
+	8080, 8085, Z80, 8088
+The assmbler and disassembler are being remade as the CAS assembler and DAS disassembler,
+currently in the CPU repository under csd4-archive for the 8051,
+as part of the process of porting the CAS and DAS to the 8080/8085/Z80 and even 8086/8088.
+
 The Z80 CPU was widely used in the 1980's in many home computers.
 Even today it is often used as a cheap embedded CPU.
-If you need more information can get one of the following books:
 
 DasZ80 Disassembler
 ───────────────────

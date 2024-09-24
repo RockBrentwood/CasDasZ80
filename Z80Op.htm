@@ -1,0 +1,1665 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head><title>Z80 OPCODES</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+table.withborder { border-collapse: collapse; }
+td.withborder { border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse; }
+td.withoutborder { border-width: 0px; }
+a:link { text-decoration: none; color: #2018A0; }
+a:visited { text-decoration: none; color: #2018A0; }
+a:active { text-decoration: none; color: #2018A0; }
+a:hover { text-decoration: none; color: #4030FF; }
+sub { font-size: 8pt; }
+sup { font-size: 8pt; }
+hr { height: 1px; color: black; }
+</style>
+</head>
+<body bgcolor="#dfdfdf">
+<b><font size=+2><a href="https://www.pastraiser.com/cpu/Z80/Z80_opcodes.html">Zilog Z80 instruction set</a></font></b>
+(<a href="https://jnz.dk/z80/opref.html">Alternate Site</a>)
+<table cellspacing="0" cellpadding="0" class="withborder" bgcolor="#bfbfbf" align="center"><tbody>
+<caption><b><font size=+2>Main Table</font></b></caption>
+<tr style="font-family: monospace; font-size: 8pt" align="center" bgcolor="#9f9f9f">
+<td class="withborder" style="width: 3em"></td>
+<td class="withborder" style="width: 10em"><b>x0</b></td>
+<td class="withborder" style="width: 10em"><b>x1</b></td>
+<td class="withborder" style="width: 10em"><b>x2</b></td>
+<td class="withborder" style="width: 10em"><b>x3</b></td>
+<td class="withborder" style="width: 10em"><b>x4</b></td>
+<td class="withborder" style="width: 10em"><b>x5</b></td>
+<td class="withborder" style="width: 10em"><b>x6</b></td>
+<td class="withborder" style="width: 10em"><b>x7</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>00x</b></td>
+<td class="withborder" bgcolor="#bbff44">nop<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">ld BC,Dw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (BC),A<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">inc BC<br/>6 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">inc B<br/>4 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">dec B<br/>4 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld B,Db<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ffff">rlca<br/>4 (∙∙Y0X∙0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>01x</b></td>
+<td class="withborder" bgcolor="#ff6633">ex AF,AF'<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">add HL,BC<br/>11 (∙∙YHX∙0C)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,(BC)<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">dec BC<br/>6 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">inc C<br/>4 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">dec C<br/>4 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld C,Db<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ffff">rrca<br/>4 (∙∙Y0X∙0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>02x</b></td>
+<td class="withborder" bgcolor="#ffbb77">djnz Ds<br/>13/8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">ld DE,Dw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (DE),A<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">inc DE<br/>6 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">inc D<br/>4 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">dec D<br/>4 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld D,Db<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ffff">rla<br/>4 (∙∙Y0X∙0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>03x</b></td>
+<td class="withborder" bgcolor="#ffbb77">jr Ds<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">add HL,DE<br/>11 (∙∙YHX∙0C)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,(DE)<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">dec DE<br/>6 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">inc E<br/>4 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">dec E<br/>4 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld E,Db<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ffff">rra<br/>4 (∙∙Y0X∙0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>04x</b></td>
+<td class="withborder" bgcolor="#ffbb77">jr nz,Ds<br/>12/7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">ld HL,Dw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">ld (Aw),HL<br/>16 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">inc HL<br/>6 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">inc H<br/>4 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">dec H<br/>4 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld H,Db<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">daa<br/>4 (SZYHXPC)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>05x</b></td>
+<td class="withborder" bgcolor="#ffbb77">jr z,Ds<br/>12/7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">add HL,HL<br/>11 (∙∙YHX∙0C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld HL,(Aw)<br/>16 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">dec HL<br/>6 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">inc L<br/>4 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">dec L<br/>4 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld L,Db<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">cpl<br/>4 (∙∙Y1X∙1∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>06x</b></td>
+<td class="withborder" bgcolor="#ffbb77">jr nc,Ds<br/>12/7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">ld SP,Dw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (Aw),A<br/>13 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">inc SP<br/>6 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">inc (HL)<br/>11 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">dec (HL)<br/>11 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (HL),Db<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">scf<br/>4 (∙∙Y0X∙01)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>07x</b></td>
+<td class="withborder" bgcolor="#ffbb77">jr c,Ds<br/>12/7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">add HL,SP<br/>11 (∙∙YHX∙0C)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,(Aw)<br/>13 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">dec SP<br/>6 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">inc A<br/>4 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">dec A<br/>4 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,Db<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">ccf<br/>4 (∙∙YHX∙0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>10x</b></td>
+<td class="withborder" bgcolor="#aaccff">ld B,B<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld B,C<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld B,D<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld B,E<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld B,H<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld B,L<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld B,(HL)<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld B,A<br/>4 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>11x</b></td>
+<td class="withborder" bgcolor="#aaccff">ld C,B<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld C,C<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld C,D<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld C,E<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld C,H<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld C,L<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld C,(HL)<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld C,A<br/>4 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>12x</b></td>
+<td class="withborder" bgcolor="#aaccff">ld D,B<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld D,C<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld D,D<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld D,E<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld D,H<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld D,L<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld D,(HL)<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld D,A<br/>4 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>13x</b></td>
+<td class="withborder" bgcolor="#aaccff">ld E,B<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld E,C<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld E,D<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld E,E<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld E,H<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld E,L<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld E,(HL)<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld E,A<br/>4 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>14x</b></td>
+<td class="withborder" bgcolor="#aaccff">ld H,B<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld H,C<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld H,D<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld H,E<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld H,H<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld H,L<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld H,(HL)<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld H,A<br/>4 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>15x</b></td>
+<td class="withborder" bgcolor="#aaccff">ld L,B<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld L,C<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld L,D<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld L,E<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld L,H<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld L,L<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld L,(HL)<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld L,A<br/>4 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>16x</b></td>
+<td class="withborder" bgcolor="#aaccff">ld (HL),B<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (HL),C<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (HL),D<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (HL),E<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (HL),H<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (HL),L<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">halt<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (HL),A<br/>7 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>17x</b></td>
+<td class="withborder" bgcolor="#aaccff">ld A,B<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,C<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,D<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,E<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,H<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,L<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,(HL)<br/>7 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,A<br/>4 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>20x</b></td>
+<td class="withborder" bgcolor="#ffff99">add A,B<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">add A,C<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">add A,D<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">add A,E<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">add A,H<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">add A,L<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">add A,(HL)<br/>7 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">add A,A<br/>4 (SZYHXV0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>21x</b></td>
+<td class="withborder" bgcolor="#ffff99">adc A,B<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">adc A,C<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">adc A,D<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">adc A,E<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">adc A,H<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">adc A,L<br/>4 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">adc A,(HL)<br/>7 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">adc A,A<br/>4 (SZYHXV0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>22x</b></td>
+<td class="withborder" bgcolor="#ffff99">sub B<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sub C<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sub D<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sub E<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sub H<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sub L<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sub (HL)<br/>7 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sub A<br/>4 (SZYHXV1C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>23x</b></td>
+<td class="withborder" bgcolor="#ffff99">sbc A,B<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sbc A,C<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sbc A,D<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sbc A,E<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sbc A,H<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sbc A,L<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sbc A,(HL)<br/>7 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sbc A,A<br/>4 (SZYHXV1C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>24x</b></td>
+<td class="withborder" bgcolor="#ffff99">and B<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">and C<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">and D<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">and E<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">and H<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">and L<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">and (HL)<br/>7 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">and A<br/>4 (SZY1XP00)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>25x</b></td>
+<td class="withborder" bgcolor="#ffff99">xor B<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">xor C<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">xor D<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">xor E<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">xor H<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">xor L<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">xor (HL)<br/>7 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">xor A<br/>4 (SZY1XP00)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>26x</b></td>
+<td class="withborder" bgcolor="#ffff99">or B<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">or C<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">or D<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">or E<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">or H<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">or L<br/>4 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">or (HL)<br/>7 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">or A<br/>4 (SZY1XP00)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>27x</b></td>
+<td class="withborder" bgcolor="#ffff99">cp B<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">cp C<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">cp D<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">cp E<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">cp H<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">cp L<br/>4 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">cp (HL)<br/>7 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">cp A<br/>4 (SZYHXV1C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>30x</b></td>
+<td class="withborder" bgcolor="#ffddbb">ret nz<br/>11/5 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">pop BC<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbb77">jp nz,Aw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbb77">jp Aw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffddbb">call nz,Aw<br/>17/10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">push BC<br/>11 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">add A,Db<br/>7 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffddbb">rst 000q<br/>11 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>31x</b></td>
+<td class="withborder" bgcolor="#ffddbb">ret z<br/>11/5 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffddbb">ret<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbb77">jp z,Aw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#8888ff">⟨Group 313⟩</td>
+<td class="withborder" bgcolor="#ffddbb">call z,Aw<br/>17/10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffddbb">call Aw<br/>17 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">adc A,Db<br/>7 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffddbb">rst 010q<br/>11 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>32x</b></td>
+<td class="withborder" bgcolor="#ffddbb">ret nc<br/>11/5 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">pop DE<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbb77">jp nc,Aw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ff77ee">out (Pb),A<br/>11 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffddbb">call nc,Aw<br/>17/10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">push DE<br/>11 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">sub Db<br/>7 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffddbb">rst 020q<br/>11 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>33x</b></td>
+<td class="withborder" bgcolor="#ffddbb">ret c<br/>11/5 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ff6633">exx<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbb77">jp c,Aw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ff77ee">in A,(Pb)<br/>11 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffddbb">call c,Aw<br/>17/10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#8888ff">⟨Group 335⟩</td>
+<td class="withborder" bgcolor="#ffff99">sbc A,Db<br/>7 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffddbb">rst 030q<br/>11 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>34x</b></td>
+<td class="withborder" bgcolor="#ffddbb">ret PO<br/>11/5 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">pop HL<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbb77">jp po,Aw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ff6633">ex (SP),HL<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffddbb">call po,Aw<br/>17/10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">push HL<br/>11 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">and Db<br/>7 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffddbb">rst 040q<br/>11 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>35x</b></td>
+<td class="withborder" bgcolor="#ffddbb">ret PE<br/>11/5 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbb77">jp (HL)<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbb77">jp pe,Aw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ff6633">ex DE,HL<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffddbb">call pe,Aw<br/>17/10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#8888ff">⟨Group 355⟩</td>
+<td class="withborder" bgcolor="#ffff99">xor Db<br/>7 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffddbb">rst 050q<br/>11 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>36x</b></td>
+<td class="withborder" bgcolor="#ffddbb">ret P<br/>11/5 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">pop AF<br/>10 (SZYHXPNC)</td>
+<td class="withborder" bgcolor="#ffbb77">jp p,Aw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">di<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffddbb">call p,Aw<br/>17/10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">push AF<br/>11 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">or Db<br/>7 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffddbb">rst 060q<br/>11 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>37x</b></td>
+<td class="withborder" bgcolor="#ffddbb">ret M<br/>11/5 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">ld SP,HL<br/>6 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbb77">jp m,Aw<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">ei<br/>4 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffddbb">call m,Aw<br/>17/10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#8888ff">⟨Group 375⟩</td>
+<td class="withborder" bgcolor="#ffff99">cp Db<br/>7 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffddbb">rst 070q<br/>11 (∙∙∙∙∙∙∙∙)</td>
+</tr></tbody></table>
+<br/><br/>
+<table cellspacing="0" cellpadding="0" class="withborder" bgcolor="#777777" align="center"><tbody>
+<caption><b><font size=+2>Group 313</font></b></caption>
+<tr style="font-family: monospace; font-size: 8pt" align="center" bgcolor="#9f9f9f">
+<td class="withborder" style="width: 3em"></td>
+<td class="withborder" style="width: 10em"><b>x0</b></td>
+<td class="withborder" style="width: 10em"><b>x1</b></td>
+<td class="withborder" style="width: 10em"><b>x2</b></td>
+<td class="withborder" style="width: 10em"><b>x3</b></td>
+<td class="withborder" style="width: 10em"><b>x4</b></td>
+<td class="withborder" style="width: 10em"><b>x5</b></td>
+<td class="withborder" style="width: 10em"><b>x6</b></td>
+<td class="withborder" style="width: 10em"><b>x7</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>00x</b></td>
+<td class="withborder" bgcolor="#88ffff">rlc B<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rlc C<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rlc D<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rlc E<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rlc H<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rlc L<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rlc (HL)<br/>15 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rlc A<br/>8 (SZY0XP0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>01x</b></td>
+<td class="withborder" bgcolor="#88ffff">rrc B<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rrc C<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rrc D<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rrc E<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rrc H<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rrc L<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rrc (HL)<br/>15 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rrc A<br/>8 (SZY0XP0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>02x</b></td>
+<td class="withborder" bgcolor="#88ffff">rl B<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rl C<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rl D<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rl E<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rl H<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rl L<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rl (HL)<br/>15 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rl A<br/>8 (SZY0XP0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>03x</b></td>
+<td class="withborder" bgcolor="#88ffff">rr B<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rr C<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rr D<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rr E<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rr H<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rr L<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rr (HL)<br/>15 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rr A<br/>8 (SZY0XP0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>04x</b></td>
+<td class="withborder" bgcolor="#88ffff">sla B<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sla C<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sla D<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sla E<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sla H<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sla L<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sla (HL)<br/>15 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sla A<br/>8 (SZY0XP0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>05x</b></td>
+<td class="withborder" bgcolor="#88ffff">sra B<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sra C<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sra D<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sra E<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sra H<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sra L<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sra (HL)<br/>15 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sra A<br/>8 (SZY0XP0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>06x</b></td>
+<td class="withborder" bgcolor="#88ffff">*sll B<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sll C<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sll D<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sll E<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sll H<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sll L<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sll (HL)<br/>15 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sll A<br/>8 (SZY0XP0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>07x</b></td>
+<td class="withborder" bgcolor="#88ffff">srl B<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">srl C<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">srl D<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">srl E<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">srl H<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">srl L<br/>8 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">srl (HL)<br/>15 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">srl A<br/>8 (SZY0XP0C)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>10x</b></td>
+<td class="withborder" bgcolor="#88ff88">bit 0,B<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 0,C<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 0,D<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 0,E<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 0,H<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 0,L<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 0,(HL)<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 0,A<br/>8 (SZY1XU0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>11x</b></td>
+<td class="withborder" bgcolor="#88ff88">bit 1,B<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 1,C<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 1,D<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 1,E<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 1,H<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 1,L<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 1,(HL)<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 1,A<br/>8 (SZY1XU0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>12x</b></td>
+<td class="withborder" bgcolor="#88ff88">bit 2,B<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 2,C<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 2,D<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 2,E<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 2,H<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 2,L<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 2,(HL)<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 2,A<br/>8 (SZY1XU0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>13x</b></td>
+<td class="withborder" bgcolor="#88ff88">bit 3,B<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 3,C<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 3,D<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 3,E<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 3,H<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 3,L<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 3,(HL)<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 3,A<br/>8 (SZY1XU0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>14x</b></td>
+<td class="withborder" bgcolor="#88ff88">bit 4,B<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 4,C<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 4,D<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 4,E<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 4,H<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 4,L<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 4,(HL)<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 4,A<br/>8 (SZY1XU0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>15x</b></td>
+<td class="withborder" bgcolor="#88ff88">bit 5,B<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 5,C<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 5,D<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 5,E<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 5,H<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 5,L<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 5,(HL)<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 5,A<br/>8 (SZY1XU0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>16x</b></td>
+<td class="withborder" bgcolor="#88ff88">bit 6,B<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 6,C<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 6,D<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 6,E<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 6,H<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 6,L<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 6,(HL)<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 6,A<br/>8 (SZY1XU0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>17x</b></td>
+<td class="withborder" bgcolor="#88ff88">bit 7,B<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 7,C<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 7,D<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 7,E<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 7,H<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 7,L<br/>8 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 7,(HL)<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 7,A<br/>8 (SZY1XU0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>20x</b></td>
+<td class="withborder" bgcolor="#88ff88">res 0,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 0,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 0,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 0,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 0,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 0,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 0,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 0,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>21x</b></td>
+<td class="withborder" bgcolor="#88ff88">res 1,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 1,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 1,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 1,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 1,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 1,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 1,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 1,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>22x</b></td>
+<td class="withborder" bgcolor="#88ff88">res 2,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 2,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 2,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 2,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 2,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 2,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 2,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 2,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>23x</b></td>
+<td class="withborder" bgcolor="#88ff88">res 3,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 3,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 3,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 3,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 3,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 3,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 3,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 3,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>24x</b></td>
+<td class="withborder" bgcolor="#88ff88">res 4,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 4,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 4,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 4,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 4,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 4,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 4,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 4,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>25x</b></td>
+<td class="withborder" bgcolor="#88ff88">res 5,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 5,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 5,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 5,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 5,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 5,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 5,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 5,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>26x</b></td>
+<td class="withborder" bgcolor="#88ff88">res 6,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 6,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 6,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 6,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 6,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 6,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 6,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 6,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>27x</b></td>
+<td class="withborder" bgcolor="#88ff88">res 7,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 7,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 7,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 7,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 7,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 7,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 7,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 7,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>30x</b></td>
+<td class="withborder" bgcolor="#88ff88">set 0,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 0,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 0,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 0,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 0,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 0,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 0,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 0,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>31x</b></td>
+<td class="withborder" bgcolor="#88ff88">set 1,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 1,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 1,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 1,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 1,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 1,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 1,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 1,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>32x</b></td>
+<td class="withborder" bgcolor="#88ff88">set 2,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 2,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 2,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 2,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 2,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 2,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 2,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 2,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>33x</b></td>
+<td class="withborder" bgcolor="#88ff88">set 3,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 3,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 3,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 3,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 3,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 3,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 3,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 3,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>34x</b></td>
+<td class="withborder" bgcolor="#88ff88">set 4,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 4,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 4,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 4,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 4,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 4,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 4,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 4,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>35x</b></td>
+<td class="withborder" bgcolor="#88ff88">set 5,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 5,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 5,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 5,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 5,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 5,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 5,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 5,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>36x</b></td>
+<td class="withborder" bgcolor="#88ff88">set 6,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 6,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 6,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 6,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 6,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 6,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 6,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 6,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>37x</b></td>
+<td class="withborder" bgcolor="#88ff88">set 7,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 7,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 7,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 7,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 7,H<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 7,L<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 7,(HL)<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 7,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr></tbody></table>
+<br/><br/>
+<table cellspacing="0" cellpadding="0" class="withborder" bgcolor="#777777" align="center"><tbody>
+<caption>
+<b><font size=+2>Group 335 (Rx,Rh,Rl) = (IX,IXH,IXL)<br/>Group 375 (Rx,Rh,Rl) = (IY,IYH,IYL)</font></b><br/>
+<i>Undefined opcodes default to the Main Table entries, but with a 4-cycle penalty.</i>
+</caption>
+<tr style="font-family: monospace; font-size: 8pt" align="center" bgcolor="#9f9f9f">
+<td class="withborder" style="width: 3em"></td>
+<td class="withborder" style="width: 10em"><b>x0</b></td>
+<td class="withborder" style="width: 10em"><b>x1</b></td>
+<td class="withborder" style="width: 10em"><b>x2</b></td>
+<td class="withborder" style="width: 10em"><b>x3</b></td>
+<td class="withborder" style="width: 10em"><b>x4</b></td>
+<td class="withborder" style="width: 10em"><b>x5</b></td>
+<td class="withborder" style="width: 10em"><b>x6</b></td>
+<td class="withborder" style="width: 10em"><b>x7</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>00x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>01x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffbbbb">add Rx,BC<br/>15 (∙∙YHX∙0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>02x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>03x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffbbbb">add Rx,DE<br/>15 (∙∙YHX∙0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>04x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ccffcc">ld Rx,Dw<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ccffcc">ld (Aw),Rx<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">inc Rx<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">*inc Rh<br/>8 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">*dec Rh<br/>8 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rh,Db<br/>11 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>05x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffbbbb">add Rx,Rx<br/>15 (∙∙YHX∙0C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld Rx,(Aw)<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">dec Rx<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffff99">*inc Rl<br/>8 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">*dec Rl<br/>8 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rl,Db<br/>11 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>06x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffff99">inc (Rx+Ds)<br/>23 (∙∙∙∙∙V0∙)</td>
+<td class="withborder" bgcolor="#ffff99">dec (Rx+Ds)<br/>23 (∙∙∙∙∙V1∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (Rx+Ds),Db<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>07x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffbbbb">add Rx,SP<br/>15 (∙∙YHX∙0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>10x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#aaccff">*ld B,Rh<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld B,Rl<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld B,(Rx+Ds)<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>11x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#aaccff">*ld C,Rh<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld C,Rl<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld C,(Rx+Ds)<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>12x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#aaccff">*ld D,Rh<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld D,Rl<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld D,(Rx+Ds)<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>13x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#aaccff">*ld E,Rh<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld E,Rl<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld E,(Rx+Ds)<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>14x</b></td>
+<td class="withborder" bgcolor="#aaccff">*ld Rh,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rh,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rh,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rh,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rh,Rh<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rh,Rl<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld H,(Rx+Ds)<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rh,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>15x</b></td>
+<td class="withborder" bgcolor="#aaccff">*ld Rl,B<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rl,C<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rl,D<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rl,E<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rl,Rh<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rl,Rl<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld L,(Rx+Ds)<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld Rl,A<br/>8 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>16x</b></td>
+<td class="withborder" bgcolor="#aaccff">ld (Rx+Ds),B<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (Rx+Ds),C<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (Rx+Ds),D<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (Rx+Ds),E<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (Rx+Ds),H<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld (Rx+Ds),L<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#aaccff">ld (Rx+Ds),A<br/>19 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>17x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#aaccff">*ld A,Rh<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">*ld A,Rl<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,(Rx+Ds)<br/>19 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>20x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffff99">*add A,Rh<br/>8 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">*add A,Rl<br/>8 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">add A,(Rx+Ds)<br/>19 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>21x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffff99">*adc A,Rh<br/>8 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">*adc A,Rl<br/>8 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#ffff99">adc A,(Rx+Ds)<br/>19 (SZYHXV0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>22x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffff99">*sub Rh<br/>8 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">*sub Rl<br/>8 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sub (Rx+Ds)<br/>19 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>23x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffff99">*sbc A,Rh<br/>8 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">*sbc A,Rl<br/>8 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">sbc A,(Rx+Ds)<br/>19 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>24x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffff99">*and Rh<br/>8 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">*and Rl<br/>8 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">and (Rx+Ds)<br/>19 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>25x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffff99">*xor Rh<br/>8 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">*xor Rl<br/>8 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">xor (Rx+Ds)<br/>19 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>26x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffff99">*or Rh<br/>8 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">*or Rl<br/>8 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#ffff99">or (Rx+Ds)<br/>19 (SZY1XP00)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>27x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffff99">*cp Rh<br/>8 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">*cp Rl<br/>8 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#ffff99">cp (Rx+Ds)<br/>19 (SZYHXV1C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>30x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>31x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#8888ff">⟨Group 335 313⟩<br/>⟨Group 375 313⟩</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>32x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>33x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>34x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ccffcc">pop Rx<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ff6633">ex (SP),Rx<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ccffcc">push Rx<br/>15 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>35x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ffbb77">jp (Rx)<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>36x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>37x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#ccffcc">ld SP,Rx<br/>10 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr></tbody></table>
+<br/><br/>
+<table cellspacing="0" cellpadding="0" class="withborder" bgcolor="#777777" align="center"><tbody>
+<caption>
+<b><font size=+2>Group 335 313 (Rx,Rh,Rl) = (IX,IXH,IXL)<br/>Group 375 313 (Rx,Rh,Rl) = (IY,IYH,IYL)</font></b><br/>
+<i>Undefined opcodes default to the Group 313 Table entries, but with a 4-cycle penalty.</i>
+</caption>
+<tr style="font-family: monospace; font-size: 8pt" align="center" bgcolor="#9f9f9f">
+<td class="withborder" style="width: 3em"></td>
+<td class="withborder" style="width: 10em"><b>x0</b></td>
+<td class="withborder" style="width: 10em"><b>x1</b></td>
+<td class="withborder" style="width: 10em"><b>x2</b></td>
+<td class="withborder" style="width: 10em"><b>x3</b></td>
+<td class="withborder" style="width: 10em"><b>x4</b></td>
+<td class="withborder" style="width: 10em"><b>x5</b></td>
+<td class="withborder" style="width: 10em"><b>x6</b></td>
+<td class="withborder" style="width: 10em"><b>x7</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>00x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ffff">*rlc Rh<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*rlc Rl<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rlc (Rx+Ds)<br/>23 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>01x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ffff">*rrc Rh<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*rrc Rl<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rrc (Rx+Ds)<br/>23 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>02x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ffff">*rl Rh<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*rl Rl<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rl (Rx+Ds)<br/>23 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>03x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ffff">*rr Rh<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*rr Rl<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">rr (Rx+Ds)<br/>23 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>04x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ffff">*sla Rh<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sla Rl<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sla (Rx+Ds)<br/>23 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>05x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ffff">*sra Rh<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sra Rl<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">sra (Rx+Ds)<br/>23 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>06x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ffff">*sll Rh<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sll Rl<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*sll (Rx+Ds)<br/>23 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>07x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ffff">*srl Rh<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">*srl Rl<br/>12 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#88ffff">srl (Rx+Ds)<br/>23 (SZY0XP0C)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>10x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*bit 0,Rh<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">*bit 0,Rl<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 0,(Rx+Ds)<br/>20 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>11x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*bit 1,Rh<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">*bit 1,Rl<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 1,(Rx+Ds)<br/>20 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>12x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*bit 2,Rh<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">*bit 2,Rl<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 2,(Rx+Ds)<br/>20 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>13x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*bit 3,Rh<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">*bit 3,Rl<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 3,(Rx+Ds)<br/>20 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>14x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*bit 4,Rh<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">*bit 4,Rl<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 4,(Rx+Ds)<br/>20 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>15x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*bit 5,Rh<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">*bit 5,Rl<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 5,(Rx+Ds)<br/>20 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>16x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*bit 6,Rh<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">*bit 6,Rl<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 6,(Rx+Ds)<br/>20 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>17x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*bit 7,Rh<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">*bit 7,Rl<br/>12 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#88ff88">bit 7,(Rx+Ds)<br/>20 (SZY1XU0∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>20x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*res 0,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*res 0,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 0,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>21x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*res 1,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*res 1,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 1,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>22x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*res 2,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*res 2,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 2,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>23x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*res 3,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*res 3,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 3,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>24x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*res 4,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*res 4,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 4,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>25x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*res 5,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*res 5,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 5,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>26x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*res 6,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*res 6,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 6,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>27x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*res 7,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*res 7,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">res 7,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>30x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*set 0,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*set 0,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 0,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>31x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*set 1,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*set 1,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 1,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>32x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*set 2,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*set 2,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 2,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>33x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*set 3,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*set 3,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 3,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>34x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*set 4,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*set 4,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 4,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>35x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*set 5,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*set 5,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 5,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>36x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*set 6,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*set 6,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 6,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>37x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#88ff88">*set 7,Rh<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">*set 7,Rl<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ff88">set 7,(Rx+Ds)<br/>23 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr></tbody></table>
+<br/><br/>
+<table cellspacing="0" cellpadding="0" class="withborder" bgcolor="#777777" align="center"><tbody>
+<caption>
+<b><font size=+2>Group 355</font></b><br/>
+<i>Undefined opcodes, except where otherwise indicated, default to "nop”, but with a 4-cycle penalty.</i>
+</caption>
+<tr style="font-family: monospace; font-size: 8pt" align="center" bgcolor="#9f9f9f">
+<td class="withborder" style="width: 3em"></td>
+<td class="withborder" style="width: 10em"><b>x0</b></td>
+<td class="withborder" style="width: 10em"><b>x1</b></td>
+<td class="withborder" style="width: 10em"><b>x2</b></td>
+<td class="withborder" style="width: 10em"><b>x3</b></td>
+<td class="withborder" style="width: 10em"><b>x4</b></td>
+<td class="withborder" style="width: 10em"><b>x5</b></td>
+<td class="withborder" style="width: 10em"><b>x6</b></td>
+<td class="withborder" style="width: 10em"><b>x7</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>00x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>01x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>02x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>03x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>04x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>05x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>06x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>07x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>10x</b></td>
+<td class="withborder" bgcolor="#ff77ee">in B,(C)<br/>12 (SZX0XP0∙)</td>
+<td class="withborder" bgcolor="#ff77ee">out (C),B<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">sbc HL,BC<br/>15 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld (Aw),BC<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">neg<br/>8 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#ffddbb">retn<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">im 0<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld I,A<br/>9 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>11x</b></td>
+<td class="withborder" bgcolor="#ff77ee">in C,(C)<br/>12 (SZX0XP0∙)</td>
+<td class="withborder" bgcolor="#ff77ee">out (C),C<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">adc HL,BC<br/>15 (SZXHXV0C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld BC,(Aw)<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*neg<br/>8 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#ffddbb">reti<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*im 0<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld R,A<br/>9 (∙∙∙∙∙∙∙∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>12x</b></td>
+<td class="withborder" bgcolor="#ff77ee">in D,(C)<br/>12 (SZX0XP0∙)</td>
+<td class="withborder" bgcolor="#ff77ee">out (C),D<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">sbc HL,DE<br/>15 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld (Aw),DE<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*neg<br/>8 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#777777">*retn<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">im 1<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,I<br/>9 (SZY0XP0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>13x</b></td>
+<td class="withborder" bgcolor="#ff77ee">in E,(C)<br/>12 (SZX0XP0∙)</td>
+<td class="withborder" bgcolor="#ff77ee">out (C),E<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">adc HL,DE<br/>15 (SZXHXV0C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld DE,(Aw)<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*neg<br/>8 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#777777">*retn<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#bbff44">im 2<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#aaccff">ld A,R<br/>9 (SZY0XP0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>14x</b></td>
+<td class="withborder" bgcolor="#ff77ee">in H,(C)<br/>12 (SZX0XP0∙)</td>
+<td class="withborder" bgcolor="#ff77ee">out (C),H<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">sbc HL,HL<br/>15 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld (Aw),HL<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*neg<br/>8 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#777777">*retn<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*im 0<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ffff">rrd<br/>18 (SZX0XP0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>15x</b></td>
+<td class="withborder" bgcolor="#ff77ee">in L,(C)<br/>12 (SZX0XP0∙)</td>
+<td class="withborder" bgcolor="#ff77ee">out (C),L<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">adc HL,HL<br/>15 (SZXHXV0C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld HL,(Aw)<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*neg<br/>8 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#777777">*retn<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*im 0<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#88ffff">rld<br/>18 (SZX0XP0∙)</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>16x</b></td>
+<td class="withborder" bgcolor="#ff77ee">*in (C)<br/>12 (SZX0XP0∙)</td>
+<td class="withborder" bgcolor="#ff77ee">*out (C),0<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">sbc HL,SP<br/>15 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld (Aw),SP<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*neg<br/>8 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#777777">*retn<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*im 1<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>17x</b></td>
+<td class="withborder" bgcolor="#ff77ee">in A,(C)<br/>12 (SZX0XP0∙)</td>
+<td class="withborder" bgcolor="#ff77ee">out (C),A<br/>12 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#ffbbbb">adc HL,SP<br/>15 (SZXHXV0C)</td>
+<td class="withborder" bgcolor="#ccffcc">ld SP,(Aw)<br/>20 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*neg<br/>8 (SZXHXV1C)</td>
+<td class="withborder" bgcolor="#777777">*retn<br/>14 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*im 2<br/>8 (∙∙∙∙∙∙∙∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>20x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>21x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>22x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>23x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>24x</b></td>
+<td class="withborder" bgcolor="#ff6633">ldi<br/>16 (∙∙X0XV0∙)</td>
+<td class="withborder" bgcolor="#ff6633">cpi<br/>16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#ff77ee">ini<br/>16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#ff77ee">outi<br/>16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>25x</b></td>
+<td class="withborder" bgcolor="#ff6633">ldd<br/>16 (∙∙X0XV0∙)</td>
+<td class="withborder" bgcolor="#ff6633">cpd<br/>16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#ff77ee">ind<br/>16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#ff77ee">outd<br/>16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>26x</b></td>
+<td class="withborder" bgcolor="#ff6633">ldir<br/>21/16 (∙∙X0XV0∙)</td>
+<td class="withborder" bgcolor="#ff6633">cpir<br/>21/16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#ff77ee">inir<br/>21/16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#ff77ee">otir<br/>21/16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>27x</b></td>
+<td class="withborder" bgcolor="#ff6633">lddr<br/>21/16 (∙∙X0XV0∙)</td>
+<td class="withborder" bgcolor="#ff6633">cpdr<br/>21/16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#ff77ee">indr<br/>21/16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#ff77ee">otdr<br/>21/16 (SZXHXV1∙)</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>30x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>31x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>32x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>33x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>34x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>35x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>36x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>37x</b></td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+<td class="withborder" bgcolor="#777777">*&nbsp;<br/>&nbsp;</td>
+</tr></tbody></table>
+<br/><br/>
+<table cellspacing="0" cellpadding="0" style="font-family: monospace; font-size: 8pt" align="center"><tbody>
+<tr>
+<td>
+<table cellspacing="0" cellpadding="0" style="font-family: monospace; font-size: 8pt"><tbody>
+<tr><td bgcolor="#8888ff">Prefix Group</td></tr>
+<tr><td bgcolor="#aaccff">8-Bit Load Group</td></tr>
+<tr><td bgcolor="#ccffcc">16-Bit Load Group</td></tr>
+<tr><td bgcolor="#ff6633">Exchange, Block Transfer, Search Group</td></tr>
+<tr><td bgcolor="#ffff99">8-Bit Arithmetic and Logical Group</td></tr>
+<tr><td bgcolor="#bbff44">General-Purpose Arithmetic and CPU Control Group</td></tr>
+<tr><td bgcolor="#ffbbbb">16-Bit Arithmetic Group</td></tr>
+<tr><td bgcolor="#88ffff">Rotate and Shift Group</td></tr>
+<tr><td bgcolor="#88ff88">Bit Set, Reset and Test Group</td></tr>
+<tr><td bgcolor="#ffbb77">Jump Group</td></tr>
+<tr><td bgcolor="#ffddbb">Call and Return Group</td></tr>
+<tr><td bgcolor="#ff77ee">Input and Output Group</td></tr>
+<tr><td bgcolor="#777777">Undocumented Instructions (not useful aliases)</td></tr>
+</tbody></table>
+</td>
+<td width="25"></td>
+<td>
+<table cellspacing="0" cellpadding="0"><tbody>
+<tr style="font-family: monospace; font-size: 8pt" align="center">
+<td class="withborder" bgcolor="#ffffff">Operation<br/>Cycles Flags (SZYHXPNC)</td>
+</tr></tbody></table>
+</td>
+<td width="25"></td>
+<td>
+Cycles: additions apply if the conditional is true.<br/>
+</td>
+</tr></tbody></table>
+<br/>
+<table cellspacing="0" cellpadding="0" style="font-family: monospace; font-size: 8pt" align="center"><tbody>
+<tr>
+<td>
+Flags affected are always shown in <b>S Z Y H X P/V N C</b> order.
+If flag is marked by "<b>0</b>" it means it is reset after the instruction.
+If it is marked by "<b>1</b>" it is set.
+If it is marked by "<b>-</b>" it is not changed.
+If it is marked by "<b>S</b>", "<b>Z</b>", "<b>Y</b>", "<b>H</b>", "<b>X</b>", "<b>P/V</b>", "<b>N</b>" or "<b>C</b>" corresponding flag is affected as expected by its function.
+Flag <b>P/V</b> behaves like even parity flag when marked "<b>P</b>" and like overflow flag when marked "<b>V</b>".<br/>
+Undocumented instructions are marked by * in front of the their name.
+If they are useful they are put into particular instruction group marked by cell background color, if they are mere aliases for other instruction they are marked by grey background.<br/>
+In combinations of prefixes the only useful ones are DDCB and FDCB.
+DDED and FDED behaves like ED alone, so no instructions like adc IX,BC exist.
+In a consecutive row of DD and FD prefixes the last one prevails.<br/>
+<br/>
+<span style="font-family: monospace"><b>Db:</b></span> Byte-Sized Immediate Data (8-bits)<br/>
+<span style="font-family: monospace"><b>Dw:</b></span> Word-Sized Immediate Data (16-bits)<br/>
+<span style="font-family: monospace"><b>Ds:</b></span> Byte-Sized Signed Immediate Data (8-bits), added to PC, IX or IY<br/>
+<span style="font-family: monospace"><b>Aw:</b></span> Memory Address (16-bits)<br/>
+<span style="font-family: monospace"><b>Pb:</b></span> Port Address (8-bits)<br/>
+</td>
+</tr></tbody></table>
+<br/><br/>
+<span style="font-size: 150%"><b>Registers</b></span>
+<br/><br/>
+<table><tbody>
+<tr>
+<td valign="top">
+<b>Main register set:</b><br/><br/>
+<table cellspacing="0" cellpadding="0" class="withborder" bgcolor="#efefef" width="300"><tbody>
+<tr align="center" bgcolor="#777777"><td class="withborder" width="150">15  . . .  8</td>
+<td class="withborder" width="150">7  . . .  0</td></tr>
+<tr align="center"><td class="withborder">A (accumulator)</td><td class="withborder">F (flags)</td></tr>
+<tr align="center"><td class="withborder">B</td><td class="withborder">C</td></tr>
+<tr align="center"><td class="withborder">D</td><td class="withborder">E</td></tr>
+<tr align="center"><td class="withborder">H</td><td class="withborder">L</td></tr>
+<tr align="center"><td class="withoutborder" bgcolor="#dfdfdf"></td><td class="withborder">I (interrupt vector)</td></tr>
+<tr align="center"><td class="withoutborder" bgcolor="#dfdfdf"></td><td class="withborder">R (memory refresh)</td></tr>
+</tbody></table>
+<br/>
+<table cellspacing="0" cellpadding="0" class="withborder" bgcolor="#efefef" width="300"><tbody>
+<tr align="center" bgcolor="#777777"><td class="withborder" width="300">15  . . .  0</td></tr>
+<tr align="center"><td class="withborder" width="400">IX (index register)</td></tr>
+<tr align="center"><td class="withborder">IY (index register)</td></tr>
+<tr align="center"><td class="withborder">SP (stack pointer)</td></tr>
+<tr align="center"><td class="withborder">PC (program counter)</td></tr>
+</tbody></table>
+</td>
+<td width="50"></td>
+<td valign="top">
+<b>Alternate register set:</b><br/><br/>
+<table cellspacing="0" cellpadding="0" class="withborder" bgcolor="#efefef" width="300"><tbody>
+<tr align="center" bgcolor="#777777"><td class="withborder" width="150">15  . . .  8</td><td class="withborder" width="150">7  . . .  0</td></tr>
+<tr align="center"><td class="withborder">A' (accumulator)</td><td class="withborder">F' (flags)</td></tr>
+<tr align="center"><td class="withborder">B'</td><td class="withborder">C'</td></tr>
+<tr align="center"><td class="withborder">D'</td><td class="withborder">E'</td></tr>
+<tr align="center"><td class="withborder">H'</td><td class="withborder">L'</td></tr>
+</tbody></table>
+</td>
+<td width="50"></td>
+<td valign="top">
+<b>Flag register (F) bits:</b><br/><br/>
+<table cellspacing="0" cellpadding="0" class="withborder" bgcolor="#efefef" width="200"><tbody>
+<tr align="center" bgcolor="#777777">
+<td class="withborder" width="25">7</td>
+<td class="withborder" width="25">6</td>
+<td class="withborder" width="25">5</td>
+<td class="withborder" width="25">4</td>
+<td class="withborder" width="25">3</td>
+<td class="withborder" width="25">2</td>
+<td class="withborder" width="25">1</td>
+<td class="withborder" width="25">0</td>
+</tr><tr align="center">
+<td class="withborder">S</td>
+<td class="withborder">Z</td>
+<td class="withborder">Y</td>
+<td class="withborder">H</td>
+<td class="withborder">X</td>
+<td class="withborder">P</td>
+<td class="withborder">N</td>
+<td class="withborder">C</td>
+</tr></tbody></table>
+<br/>
+<span style="font-family: monospace; font-size: 14pt"><b>S</b></span> - Sign Flag<br/>
+<span style="font-family: monospace; font-size: 14pt"><b>Z</b></span> - Zero Flag<br/>
+<span style="font-family: monospace; font-size: 14pt"><b>Y</b></span> - Y Flag (undocumented)<br/>
+<span style="font-family: monospace; font-size: 14pt"><b>H</b></span> - Half Carry Flag<br/>
+<span style="font-family: monospace; font-size: 14pt"><b>X</b></span> - X Flag (undocumented)<br/>
+<span style="font-family: monospace; font-size: 14pt"><b>P</b></span> - Parity / Overflow Flag<br/>
+<span style="font-family: monospace; font-size: 14pt"><b>N</b></span> - Add / Substract Flag<br/>
+<span style="font-family: monospace; font-size: 14pt"><b>C</b></span> - Carry Flag<br/>
+</td>
+</tr></tbody></table>
+</body></html>
