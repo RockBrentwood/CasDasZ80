@@ -5,10 +5,6 @@
 #include <cstdlib>
 #include <cstring>
 
-uint16_t CalcHash(const char *name);
-SymbolP FindSymbol(const char *name);
-void InitSymTab(void);
-
 // clang-format off
 typedef struct {
    int16_t id; // ID for the symbol
@@ -107,10 +103,10 @@ static const TokenTable Token[] = {
 // clang-format on
 
 Command Cmd[80]; // a tokenized line
-SymbolP SymTab[256]; // symbol table (split with the hash byte)
+SymbolP SymTab[256]; // symbol table (split by the upper hash byte)
 
 // calculate a simple hash for a string
-uint16_t CalcHash(const char *name) {
+static uint16_t CalcHash(const char *name) {
    uint16_t hash_val = 0;
    uint16_t i;
    uint8_t c;
@@ -127,7 +123,7 @@ uint16_t CalcHash(const char *name) {
 }
 
 // search for a symbol, generate one if it didn't already exist.
-SymbolP FindSymbol(const char *name) {
+static SymbolP FindSymbol(const char *name) {
    uint16_t hash = CalcHash(name); // hash value for the name
    uint8_t hashb = hash;
    SymbolP s;
@@ -166,7 +162,7 @@ void InitSymTab(void) {
 }
 
 // Is this an alphanumeric character _or_ an unterline, which is a valid symbol
-int isalnum_(char c) {
+static int isalnum_(char c) {
    return isalnum(c) || c == '_';
 }
 

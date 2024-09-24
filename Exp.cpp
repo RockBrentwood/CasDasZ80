@@ -4,16 +4,14 @@
 #include <cstdlib>
 #include <cstring>
 
-int32_t GetValue(CommandP *c);
-int32_t GetExpr(CommandP *c);
-int32_t GetTerm(CommandP *c);
-int32_t GetCalcTerm(CommandP *c);
+static SymbolP ErrSymbol;
+RecalcListP LastRecalc; // to patch the type for incomplete formulas
 
-SymbolP ErrSymbol;
-RecalcListP LastRecalc;
+// Indirect recursion.
+static int32_t GetCalcTerm(CommandP *c);
 
 // Get a symbol, number or bracket
-int32_t GetValue(CommandP *c) {
+static int32_t GetValue(CommandP *c) {
    int32_t value = 0;
    SymbolP s;
    switch ((*c)->typ) {
@@ -44,7 +42,7 @@ int32_t GetValue(CommandP *c) {
 }
 
 // interpret a sign
-int32_t GetExpr(CommandP *c) {
+static int32_t GetExpr(CommandP *c) {
    int32_t value;
    bool negOp = false;
    bool notOp = false;
@@ -68,7 +66,7 @@ int32_t GetExpr(CommandP *c) {
 }
 
 // multiplications, etc.
-int32_t GetTerm(CommandP *c) {
+static int32_t GetTerm(CommandP *c) {
    int32_t value;
    bool exit = false;
    value = GetExpr(c);
@@ -98,7 +96,7 @@ int32_t GetTerm(CommandP *c) {
 }
 
 // addition, etc.
-int32_t GetCalcTerm(CommandP *c) {
+static int32_t GetCalcTerm(CommandP *c) {
    int32_t value;
    bool exit = false;
    value = GetTerm(c);
@@ -135,7 +133,7 @@ int32_t GetCalcTerm(CommandP *c) {
    return value;
 }
 
-// Calculate a term
+// Calculate a formula
 int32_t CalcTerm(CommandP *c) {
    int32_t value;
    CommandP cSave = *c;

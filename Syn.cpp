@@ -4,12 +4,8 @@
 #include <cstdlib>
 #include <cstring>
 
-void DoPseudo(CommandP *cp);
-void DoOpcode(CommandP *cp);
-int16_t GetOperand(CommandP *cp, int32_t *value);
-
 // get operands for an opcode
-int16_t GetOperand(CommandP *c, int32_t *value) {
+static int16_t GetOperand(CommandP *c, int32_t *value) {
    int16_t typ;
    int16_t val, sval;
    LastRecalc = nullptr; // (to be safe: reset recalc entry)
@@ -77,7 +73,7 @@ int16_t GetOperand(CommandP *c, int32_t *value) {
 }
 
 // test for an opcode
-void DoOpcode(CommandP *cp) {
+static void DoOpcode(CommandP *cp) {
    MSG(2, "DoOpcode( %X )\n", (*cp)->val);
    CommandP c = *cp;
    uint8_t *iRAM = RAM + PC;
@@ -846,9 +842,9 @@ void DoOpcode(CommandP *cp) {
 }
 
 // test for pseudo-opcodes
-bool IgnoreUntilIF = false; // ignore all lines till next "ENDIF" (this could be a stack for nesting support)
+static bool IgnoreUntilIF = false; // ignore all lines till next "ENDIF" (this could be a stack for nesting support)
 
-void DoPseudo(CommandP *cp) {
+static void DoPseudo(CommandP *cp) {
    MSG(2, "DoPseudo( %d, %X )\n", (*cp)->typ, (*cp)->val);
    CommandP c = *cp;
    CommandP cptr;
@@ -936,7 +932,7 @@ void DoPseudo(CommandP *cp) {
    PC = iPC;
 }
 
-// Compile a single line
+// Compile a single line into machine code
 void CompileLine(void) {
    MSG(2, "CompileLine()\n");
    CommandP c = Cmd;

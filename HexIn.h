@@ -76,7 +76,7 @@ void ihex_end_read(struct ihex_state *ihex);
 //		}
 //		return !error;
 //	}
-extern ihex_bool_t ihex_data_read(struct ihex_state *ihex, ihex_record_type_t type, ihex_bool_t checksum_mismatch);
+ihex_bool_t ihex_data_read(struct ihex_state *ihex, ihex_record_type_t type, ihex_bool_t checksum_mismatch);
 
 // Begin reading at `segment`; this is required only if the initial segment is not specified in the input data and it is non-zero.
 #ifndef IHEX_DISABLE_SEGMENTS

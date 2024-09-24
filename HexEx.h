@@ -102,7 +102,7 @@ void ihex_end_write(struct ihex_state *ihex);
 //		(void)fputs(buffer, stdout);
 //	}
 // Note that the contents of `buffer` can become invalid immediately after this function returns - the data must be copied if it needs to be preserved!
-extern void ihex_flush_buffer(struct ihex_state *ihex, char *buffer, char *eptr);
+void ihex_flush_buffer(struct ihex_state *ihex, char *buffer, char *eptr);
 
 // As `ihex_write_at_address`, but specify a segment selector.
 // Note that segments are not automatically incremented when the 16-bit address overflows (the default is to use 32-bit linear addressing).

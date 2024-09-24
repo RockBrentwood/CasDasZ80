@@ -60,7 +60,7 @@
 #include <cstdlib>
 #include <cstring>
 
-const uint32_t CODESIZE = 0x10000;
+static const uint32_t CODESIZE = 0x10000;
 
 // memory for the code
 static uint8_t Opcodes[CODESIZE];
@@ -382,7 +382,7 @@ static void GenerateOutput(char *buf, size_t bufsize, const char *Format, ...) {
 #define G(...) GenerateOutput(s, ssize, __VA_ARGS__)
 
 // Disassemble
-void Disassemble(uint16_t adr, char *s, size_t ssize) {
+static void Disassemble(uint16_t adr, char *s, size_t ssize) {
    uint8_t a = Opcodes[adr];
    uint8_t CB = 0, DDFD = 0, ED = 0; // prefix marker
    uint8_t d = (a >> 3)&7;
@@ -960,7 +960,7 @@ int main(int argc, char *argv[]) {
 //	}
 // reads header of a file and tests if it's Z80 ASM file, reads address
 // return value: 0=OK, 1=this is not a z80 asm file, 2,3=seek malfunction
-int read_header(FILE *stream, uint32_t *address, uint32_t *len) {
+static int read_header(FILE *stream, uint32_t *address, uint32_t *len) {
    const char *Z80MAGIC = "Z80ASM\032\n";
    char tmp[9];
    unsigned char c[2];

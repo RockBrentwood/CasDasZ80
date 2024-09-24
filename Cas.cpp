@@ -9,21 +9,20 @@
 #include "Cas.h"
 
 uint32_t PC; // current address
-uint32_t nextPC; // remember address
-uint8_t *RAM; // RAM of the Z80
-const uint32_t RAMSIZE = 0x10000;
-uint32_t minPC = RAMSIZE;
-uint32_t maxPC = 0;
-bool listing = false;
+uint8_t *RAM; // 64K RAM of the Z80
+static const uint32_t RAMSIZE = 0x10000;
+static uint32_t minPC = RAMSIZE;
+static uint32_t maxPC = 0;
+static bool listing = false;
 static FILE *infile;
 static FILE *outbin;
 static FILE *outz80;
 static FILE *outhex;
 int verboseMode = 0;
-long LineNo; // current line number
-char LineBuf[MAXLINELENGTH]; // buffer for the current line
+static long LineNo; // current line number
+static char LineBuf[MAXLINELENGTH]; // buffer for the current line
 
-// print fatal error message and exit
+// print a fatal error message and exit
 void Error(const char *s) {
    const char *p;
    printf("Error in line %ld: %s\n", LineNo, s);
@@ -32,7 +31,7 @@ void Error(const char *s) {
    exit(1);
 }
 
-void usage(const char *fullpath) {
+static void usage(const char *fullpath) {
    const char *progname = nullptr;
    char c;
    while ((c = *fullpath++))
@@ -50,8 +49,71 @@ void usage(const char *fullpath) {
    );
 }
 
-static void listOneLine(uint32_t firstPC, uint32_t lastPC, const char *oneLine);
-static void write_header(FILE *stream, uint32_t address);
+// create listing for one sorce code line
+// address    data bytes    source code
+// break long data block (e.g. defm) into lines of 4 data bytes
+static void listOneLine(uint32_t firstPC, uint32_t lastPC, const char *oneLine) {
+   if (!listing)
+      return;
+   if (firstPC == lastPC) {
+      printf("%*s\n", 24 + int(strlen(oneLine)), oneLine);
+   } else {
+      printf("%4.4X   ", firstPC);
+      uint32_t adr = firstPC;
+      int i = 0;
+      while (adr < lastPC) {
+         printf(" %2.2X", RAM[adr++]);
+         if (i == 3)
+            printf("     %s", oneLine);
+         if ((i&3) == 3) {
+            printf("\n");
+            if (adr < lastPC)
+               printf("%4.4X   ", adr);
+         }
+         ++i;
+      }
+      if (i < 4)
+         printf("%*s\n", 5 + 3*(4 - i) + int(strlen(oneLine)), oneLine);
+      else if ((i&3))
+         printf("\n");
+   }
+}
+
+void MSG(int mode, const char *format, ...) {
+   if (verboseMode >= mode) {
+      while (mode--)
+         fprintf(stderr, " ");
+      va_list argptr;
+      va_start(argptr, format);
+      vfprintf(stderr, format, argptr);
+      va_end(argptr);
+   }
+}
+
+void list(const char *format, ...) {
+   if (listing) {
+      va_list argptr;
+      va_start(argptr, format);
+      vprintf(format, argptr);
+      va_end(argptr);
+   }
+}
+
+// the z80 format is used by the z80-asm
+// http://wwwhomes.uni-bielefeld.de/achim/z80-asm.html
+// *.z80 files are bin files with a header telling the bin offset
+//	struct z80_header {
+//		const char *MAGIC = Z80MAGIC;
+//		uint16_t offset;
+//	}
+static void write_header(FILE *stream, uint32_t address) {
+   const char *Z80MAGIC = "Z80ASM\032\n";
+   unsigned char c[2];
+   c[0] = address&255;
+   c[1] = address >> 8;
+   fwrite(Z80MAGIC, 1, strlen(Z80MAGIC), stream);
+   fwrite(c, 1, 2, stream);
+}
 
 // …
 int main(int argc, char **argv) {
@@ -241,72 +303,6 @@ void checkPC(uint32_t pc) {
    if (pc > maxPC)
       maxPC = pc;
    MSG(3, "[%04X..%04X]\n", minPC, maxPC);
-}
-
-void MSG(int mode, const char *format, ...) {
-   if (verboseMode >= mode) {
-      while (mode--)
-         fprintf(stderr, " ");
-      va_list argptr;
-      va_start(argptr, format);
-      vfprintf(stderr, format, argptr);
-      va_end(argptr);
-   }
-}
-
-void list(const char *format, ...) {
-   if (listing) {
-      va_list argptr;
-      va_start(argptr, format);
-      vprintf(format, argptr);
-      va_end(argptr);
-   }
-}
-
-// create listing for one sorce code line
-// address    data bytes    source code
-// break long data block (e.g. defm) into lines of 4 data bytes
-static void listOneLine(uint32_t firstPC, uint32_t lastPC, const char *oneLine) {
-   if (!listing)
-      return;
-   if (firstPC == lastPC) {
-      printf("%*s\n", 24 + int(strlen(oneLine)), oneLine);
-   } else {
-      printf("%4.4X   ", firstPC);
-      uint32_t adr = firstPC;
-      int i = 0;
-      while (adr < lastPC) {
-         printf(" %2.2X", RAM[adr++]);
-         if (i == 3)
-            printf("     %s", oneLine);
-         if ((i&3) == 3) {
-            printf("\n");
-            if (adr < lastPC)
-               printf("%4.4X   ", adr);
-         }
-         ++i;
-      }
-      if (i < 4)
-         printf("%*s\n", 5 + 3*(4 - i) + int(strlen(oneLine)), oneLine);
-      else if ((i&3))
-         printf("\n");
-   }
-}
-
-// the z80 format is used by the z80-asm
-// http://wwwhomes.uni-bielefeld.de/achim/z80-asm.html
-// *.z80 files are bin files with a header telling the bin offset
-//	struct z80_header {
-//		const char *MAGIC = Z80MAGIC;
-//		uint16_t offset;
-//	}
-static void write_header(FILE *stream, uint32_t address) {
-   const char *Z80MAGIC = "Z80ASM\032\n";
-   unsigned char c[2];
-   c[0] = address&255;
-   c[1] = address >> 8;
-   fwrite(Z80MAGIC, 1, strlen(Z80MAGIC), stream);
-   fwrite(c, 1, 2, stream);
 }
 
 void ihex_flush_buffer(struct ihex_state *ihex, char *buffer, char *eptr) {

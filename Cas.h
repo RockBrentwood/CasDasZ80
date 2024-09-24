@@ -43,21 +43,24 @@ typedef struct Symbol {
    RecalcListP recalc; // expressions depended on this symbol (for backpatching)
 } Symbol, *SymbolP;
 
+// From Lex.cpp:
 extern Command Cmd[80]; // a tokenized line
-extern SymbolP SymTab[256]; // symbol table (split by the upper hash value)
+extern SymbolP SymTab[256]; // symbol table (split by the upper hash byte)
+void InitSymTab(void); // initialize the symbol table
+void TokenizeLine(char *sp); // tokenize a single line
+
+// From Exp.cpp:
+extern RecalcListP LastRecalc; // to patch the type for incomplete formulas
+int32_t CalcTerm(CommandP *c); // Calculate a formula
+
+// From Syn.cpp:
+void CompileLine(void); // Compile a single line into machine code
+
+// From Cas.cpp:
 extern uint32_t PC; // current address
 extern uint8_t *RAM; // 64K RAM of the Z80
-extern const uint32_t RAMSIZE;
-extern uint32_t minPC;
-extern uint32_t maxPC;
-extern bool listing;
 extern int verboseMode;
-extern void checkPC(uint32_t pc);
-extern RecalcListP LastRecalc; // to patch the type for incomplete formulas
-void Error(const char *s); // print a fatal error message
+void Error(const char *s); // print a fatal error message and exit
 void MSG(int mode, const char *format, ...);
 void list(const char *format, ...);
-int32_t CalcTerm(CommandP *c); // calculate a formula
-void CompileLine(void); // compile a line into machine code
-void InitSymTab(void); // initialize the symbol table
-void TokenizeLine(char *sp); // convert a line into tokens
+void checkPC(uint32_t pc);
