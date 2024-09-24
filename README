@@ -1,18 +1,23 @@
-Z80DisAssembler
-━━━━━━━━━━━━━━━
-The Z80 CPU was widely used in the 80s in many home computer.
+CasDasZ80
+━━━━━━━━━
+The Z80 CPU was widely used in the 1980's in many home computers.
 Even today it is often used as a cheap embedded CPU.
 If you need more information can get one of the following books:
 
-Z80 Disassembler
-────────────────
-I created this small disassembler for a Z80 cpu at one afternoon.
-It is a commandline tool.
-The size of the ROM and entry points have to be coded directly in the sourcecode.
+DasZ80 Disassembler
+───────────────────
+Originally Z80 Disassembler, it was created by Markuz Fritze (sarnau), as a small disassembler for a Z80 CPU in an afternoon.
+It is a command-line tool.
+Currently, the size of the ROM and entry points need to be hard-coded.
+It is gradually being migrated over to the design of the DAS disassembler, which currently only has a public-facing port for the 8051,
+(currently under https://github.com/RockBrentwood/CPU/tree/main/8051/csd4-archive/assem), and previously also had a local port for the 8080 and 8085.
+There is enough congruence in their designs to facilitate the migration to DAS.
 
-Every ANSI C++ compiler should compile this program.
+This program should compile with any C++ compiler.
 It only uses some ANSI C functions (look into ‟main()”).
-Current program versions can be compiled successfully with ‟gcc” and ‟clang” w/o warnings.
+C++98 should be sufficient, compatibility should continue to hold for C++11 on up, for future changes.
+Current program versions can be compiled successfully with ‟gcc”.
+Z80DisAssembler has also compiled with ‟clang” without warnings, therefore DasZ80 should, as well.
 
 The program has two parts:
 ▪	Analyze the code.
@@ -20,17 +25,22 @@ The program has two parts:
 	It start with all hardware vectors of the Z80 (‟RST” opcodes, ‟NMI”) and parses all jumps via a recursive analyze via ‟ParseOpcode()”.
 	Every opcode is marked in an array (‟OpcodesFlags”).
 	There are some exceptions, the parser can't recognize:
-	―	self modifying code.
+	―	Self Modifying Code:
 		A ROM shouldn't contain such code.
-	―	calculated branches with ‟JP (IY)”, ‟JP (IX)” or ‟JP (HL)”.
+		To properly handle this would require run-time emulation.
+		Examples where this occurs include self-unpacking, self-decrypting and/or self-loading code.
+	―	Indirect Jumps: calculated branches with ‟JP (IY)”, ‟JP (IX)” or ‟JP (HL)”.
 		The parser can't recognize them, either.
-	―	Jumptables.
+		The set of possible destinations has to be determined by analysis and added separately as entry points.
+	―	Indirect Jumps: organized as jump tables.
 		These are quite common in a ROM.
-		Only solution: disassemble the program and look into the code.
-		If you found a jumptable - like on my Futura aquarium computer - insert some more calls of ‟ParseOpcodes()”.
+		The same applies here, as with calculated branches.
+		If you find a jump table - like on Markuz' Futura aquarium computer - more entry points for ‟ParseOpcodes()” will need to be added.
 	―	Unused code.
-		Code that is never called by anybody, could not be found.
-		Make sure that the code is not called via a jump table!
+		This can be code that is reached from an unrecognized destination of an indirect jump, or as an unrecognized entry point.
+		It if assumes a regular form, consisting particularly of bytes are in the range of printable characters, then it may be initialized data.
+		It if assumes a regular form, like a block of 0's, then it may be uninitialized data.
+		By default, it is treated as part of the data area of the program
 ▪	Disassembly of the code.
 	With the help of the OpcodesFlags table the disassembler now creates the output.
 	This subroutine is quite long.
@@ -42,22 +52,29 @@ It is called while parsing and while disassembling.
 
 The disassembler recognizes some hidden opcodes.
 
-If a routine wanted an ‟address” to the Z80 code, it is in fact an **offset** to the array of code.
-**No** pointers!
+If a routine wanted an ‟address” to the Z80 code, it is in fact an offset to the array of code.
+No pointers!
 Longs are not necessary for a Z80, because the standard Z80 only supports 64k.
 
 This program is freeware.
-It is not allowed to be used as a base for a commercial product!
+It may not be used as a base for a commercial product!
 
-Z80 Assembler
-─────────────
-I created the assembler for the Z80 a few days later to compile the changes code from the disassembler into an EPROM image and build a new firmware for my aquarium computer.
-I needed almost two days for the assembler, this means: commandline only...
+CasZ80 Assembler
+────────────────
+Originally the Z80 assembler, it was created by Markuz Fritze (sarnau), as an assembler for the Z80,
+a few days after the Z80 disassembler was created, to compile the changes coded from the disassembler into an EPROM image
+and build a new firmware for Markuz' aquarium computer.
+Almost two days were needed for the assembler, this means: command-line only...
 If you want to change the filename of the sourcefile, you have to change main().
 
 This small assembler has some nice gadgets: it is a quite fast tokenizing single-pass assembler with backpatching.
 It knows all official Z80 opcodes and some undocumented opcodes (mainly with ‟IX” and ‟IY”).
 The Z80 syntax is documented in the Zilog documentation.
+
+It is being slated for migration to a Z80 port of the CAS assembler, whose only public-facing port currently is for the 8051
+(also under https://github.com/RockBrentwood/CPU/tree/main/8051/csd4-archive/assem).
+There is enough congruence in the design of the Z80 assembler with the CAS assembler, which is also a single-pass assembler with backpatching,
+to facilitate the migration to a Z80 port of the CAS.
 
 The assembler allows mathematical expressions in operands:
 	‟+”, ‟-”, ‟*”, ‟/”, ‟%” (modulo),
