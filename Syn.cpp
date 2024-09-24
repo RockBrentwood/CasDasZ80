@@ -5,52 +5,50 @@
 #include <cstring>
 
 // get operands for an opcode
-static int16_t GetOperand(CommandP &c, int32_t *value) {
-   int16_t typ;
-   int16_t val, sval;
-   LastRecalc = nullptr; // (to be safe: reset recalc entry)
-   *value = 0;
-   typ = c->typ;
-   val = c++->val; // get value and type
-   MSG(2, "GetOperand( %d, %X, %d )\n", typ, val, *value);
-   if (typ == OPCODE) {
-      if ((val >= 0x300) && (val <= 0x4ff)) {
-         if ((val == 0x323) && (c->typ == OPCODE) && (c->val == '\'')) { // AF'?
-            c++; // skip '
-            val = 0x324; // AF' returned
+static int16_t GetOperand(CommandP &Cmd, int32_t *ValueP) {
+   LastPatch = nullptr; // (to be safe: reset patch entry)
+   *ValueP = 0;
+   int16_t Type = Cmd->Type;
+   int16_t Value = Cmd++->Value; // get value and type
+   Log(2, "GetOperand( %d, %X, %d )\n", Type, Value, *ValueP);
+   if (Type == OpL) {
+      if ((Value >= 0x300) && (Value <= 0x4ff)) {
+         if ((Value == 0x323) && (Cmd->Type == OpL) && (Cmd->Value == '\'')) { // AF'?
+            Cmd++; // skip '
+            Value = 0x324; // AF' returned
          }
-         return val; // register or condition
+         return Value; // register or condition
       }
-      if ((val >= 0x100) && (val <= 0x2ff)) // an opcode
+      if ((Value >= 0x100) && (Value <= 0x2ff)) // an opcode
          Error("Illegal operand");
-      if ((val == '(') != 0) { // indirect addressing?
-         typ = c->typ;
-         sval = c++->val; // get value and type
-         if (typ == OPCODE) {
-            if (((sval&0xff0) == 0x310) || (sval == 0x301)) { // register
-               typ = c->typ;
-               val = c++->val; // get value and type
-               if ((typ == OPCODE) && (val == ')')) {
-                  if (sval == 0x312) // (HL)?
+      if ((Value == '(') != 0) { // indirect addressing?
+         Type = Cmd->Type;
+         int16_t SValue = Cmd++->Value; // get value and type
+         if (Type == OpL) {
+            if (((SValue&0xff0) == 0x310) || (SValue == 0x301)) { // register
+               Type = Cmd->Type;
+               Value = Cmd++->Value; // get value and type
+               if ((Type == OpL) && (Value == ')')) {
+                  if (SValue == 0x312) // (HL)?
                      return 0x306; // to combine them easier
-                  return sval + 0x200; // (C),(BC),(DE),(SP)
+                  return SValue + 0x200; // (C),(BC),(DE),(SP)
                }
                Error("Closing bracket missing after (BC,(DE,(HL or (SP");
             }
-            if ((sval&0xff0) == 0x330) { // IX,IY
-               if (c->typ == OPCODE) { // does an operator follow?
-                  val = c->val;
-                  if ((val == '+') || (val == '-')) {
-                     *value = CalcTerm(c);
-                     typ = c->typ;
-                     val = c++->val; // get a braket
-                     if ((typ == OPCODE) && (val == ')'))
-                        return sval + 0x300; // (IX+d) or (IY+d)
+            if ((SValue&0xff0) == 0x330) { // IX,IY
+               if (Cmd->Type == OpL) { // does an operator follow?
+                  Value = Cmd->Value;
+                  if ((Value == '+') || (Value == '-')) {
+                     *ValueP = GetExp(Cmd);
+                     Type = Cmd->Type;
+                     Value = Cmd++->Value; // get a braket
+                     if ((Type == OpL) && (Value == ')'))
+                        return SValue + 0x300; // (IX+d) or (IY+d)
                      Error("Closing bracket missing after (IX or (IY");
                   } else {
-                     if ((typ == OPCODE) && (val == ')')) {
-                        c++; // skip the bracket
-                        return sval + 0x200; // (IX) or (IY)
+                     if ((Type == OpL) && (Value == ')')) {
+                        Cmd++; // skip the bracket
+                        return SValue + 0x200; // (IX) or (IY)
                      }
                      Error("Closing bracket missing after (IX or (IY");
                   }
@@ -58,156 +56,150 @@ static int16_t GetOperand(CommandP &c, int32_t *value) {
                   Error("Illegal character after (IX or (IY");
             }
          }
-         c--; // Ptr auf das vorherige Zeichen zurück
-         *value = CalcTerm(c);
-         typ = c->typ;
-         val = c++->val; // get the closing bracket
-         if ((typ == OPCODE) && (val == ')'))
+         Cmd--; // Ptr auf das vorherige Zeichen zurück
+         *ValueP = GetExp(Cmd);
+         Type = Cmd->Type;
+         Value = Cmd++->Value; // get the closing bracket
+         if ((Type == OpL) && (Value == ')'))
             return 0x280; // (Adr)
          Error("Closing bracket missing after (adr)");
       }
    } // absolute addressing
-   c--; // return to the previous token
-   *value = CalcTerm(c);
+   Cmd--; // return to the previous token
+   *ValueP = GetExp(Cmd);
    return 0x281; // return an address
 }
 
 // test for an opcode
-static void DoOpcode(CommandP &c) {
-   MSG(2, "DoOpcode( %X )\n", c->val);
-   uint8_t *iRAM = RAM + PC;
-   uint32_t op0;
-   uint8_t Op0_24, Op0_16;
-   int16_t op1, op2;
-   int32_t value1 = 0, value2 = 0;
-   RecalcListP op1Recalc, op2Recalc;
-   checkPC(PC); // detect min, max and overflow (wrap around)
-   op0 = c++->val; // opcode
-   op1 = op2 = 0;
-   if (c->typ) {
-      op1 = GetOperand(c, &value1); // get 1. operand
-      op1Recalc = LastRecalc; // store Recalc ptr for 1. operand
-      if ((c->typ == OPCODE) && (c->val == ',')) { // get a potential 2. operand
-         c++;
-         op2 = GetOperand(c, &value2); // get the 2. operand
-         op2Recalc = LastRecalc; // store Recalc ptr for 2. operand
+static void DoOpcode(CommandP &Cmd) {
+   Log(2, "DoOpcode( %X )\n", Cmd->Value);
+   uint8_t *RamP = RAM + CurPC;
+   int32_t Value1 = 0, Value2 = 0;
+   PatchListP Patch1, Patch2;
+   int16_t Op1 = 0, Op2 = 0;
+   CheckPC(CurPC); // detect min, max and overflow (wrap around)
+   uint32_t Op0 = Cmd++->Value; // opcode
+   uint8_t Op0a = Op0 >> 24, Op0b = Op0 >> 16;
+   if (Cmd->Type) {
+      Op1 = GetOperand(Cmd, &Value1); // get 1. operand
+      Patch1 = LastPatch; // store Patch ptr for 1. operand
+      if ((Cmd->Type == OpL) && (Cmd->Value == ',')) { // get a potential 2. operand
+         Cmd++;
+         Op2 = GetOperand(Cmd, &Value2); // get the 2. operand
+         Patch2 = LastPatch; // store Patch ptr for 2. operand
       }
    }
-   Op0_24 = op0 >> 24;
-   Op0_16 = op0 >> 16;
 // helpful for debugging and enhancement
-   MSG(3, "op0: 0x%08x, op1: 0x%03x, value1: 0x%08x, op2: 0x%03x, value2: 0x%08x\n", op0, op1, value1, op2, value2);
-   switch (op0&0xff) { // opcode
+   Log(3, "Op0: 0x%08x, Op1: 0x%03x, Value1: 0x%08x, Op2: 0x%03x, Value2: 0x%08x\n", Op0, Op1, Value1, Op2, Value2);
+   switch (Op0&0xff) { // opcode
       case 0x00: // IN/OUT
-         if (Op0_24&0x01) { // OUT?
-            int32_t t;
-            RecalcListP tr;
-            t = op1;
-            op1 = op2;
-            op2 = t; // flip operands
-            t = value1;
-            value1 = value2;
-            value2 = t;
-            tr = op1Recalc;
-            op1Recalc = op2Recalc;
-            op2Recalc = tr;
+         if (Op0a&1) { // OUT?
+            int32_t Op = Op1;
+            Op1 = Op2;
+            Op2 = Op; // flip operands
+            int32_t Value = Value1;
+            Value1 = Value2;
+            Value2 = Value;
+            PatchListP Patch = Patch1;
+            Patch1 = Patch2;
+            Patch2 = Patch;
          }
-         if (((op1&0xff0) == 0x300) && (op2 == 0x501)) { // IN ?,(C) or OUT (C),?
-            if (op1 == 0x306)
+         if (((Op1&0xff0) == 0x300) && (Op2 == 0x501)) { // IN ?,(C) or OUT (C),?
+            if (Op1 == 0x306)
                Error("IN (HL),(C) or OUT (C),(HL) geht nicht");
             else {
-               *iRAM++ = 0xed;
-               *iRAM++ = Op0_24 | ((op1&0x7) << 3);
+               *RamP++ = 0355;
+               *RamP++ = Op0a | ((Op1&7) << 3);
             }
-         } else if ((op1 == 0x307) && (op2 == 0x280)) { // IN A,(n) or OUT (n),A
-            *iRAM++ = Op0_16;
-            if (op2Recalc) { // undefined expression?
-               op2Recalc->typ = 0; // add a single byte
-               op2Recalc->adr = iRAM - RAM;
-               op2Recalc = nullptr; // processing done
+         } else if ((Op1 == 0x307) && (Op2 == 0x280)) { // IN A,(n) or OUT (n),A
+            *RamP++ = Op0b;
+            if (Patch2) { // undefined expression?
+               Patch2->Type = 0; // add a single byte
+               Patch2->Addr = RamP - RAM;
+               Patch2 = nullptr; // processing done
             }
-            *iRAM++ = value2;
-         } else if (!(Op0_24&0x01) && (op1 == 0x501) && (op2 == 0)) { // undoc: IN (C))
-            *iRAM++ = 0xed;
-            *iRAM++ = 0x70;
-         } else if ((Op0_24&0x01) && (op1 == 0x281) && (op2 == 0x501) && value1 == 0) { // undoc: OUT (C),0
-            *iRAM++ = 0xed;
-            *iRAM++ = 0x71;
+            *RamP++ = Value2;
+         } else if (!(Op0a&1) && (Op1 == 0x501) && (Op2 == 0)) { // undoc: IN (C))
+            *RamP++ = 0355;
+            *RamP++ = 0160;
+         } else if ((Op0a&1) && (Op1 == 0x281) && (Op2 == 0x501) && Value1 == 0) { // undoc: OUT (C),0
+            *RamP++ = 0355;
+            *RamP++ = 0161;
          } else
             Error("operands not allowed for IN/OUT");
       break;
       case 0x01: // one byte opcode without parameter
-         if (op1 | op2) // operands provied?
+         if (Op1 | Op2) // operands provied?
             Error("operands not allowed");
          else
-            *iRAM++ = Op0_24;
+            *RamP++ = Op0a;
       break;
       case 0x02: // two byte opcode without parameter
-         if (op1 | op2) // operands provied?
+         if (Op1 | Op2) // operands provied?
             Error("operands not allowed");
          else {
-            *iRAM++ = Op0_24;
-            *iRAM++ = Op0_16;
+            *RamP++ = Op0a;
+            *RamP++ = Op0b;
          }
       break;
       case 0x03:
-         if (((op1 != 0x306) && (op1)) || (op2)) // RRD (HL) or RLD (HL)
+         if (((Op1 != 0x306) && (Op1)) || (Op2)) // RRD (HL) or RLD (HL)
             Error("Illegal Operand");
          else {
-            *iRAM++ = Op0_24;
-            *iRAM++ = Op0_16;
+            *RamP++ = Op0a;
+            *RamP++ = Op0b;
          }
       break;
       case 0x04: // 1.parameter = bit number, 2.parameter = <ea> (BIT,RES,SET)
-         if ((op1 != 0x281) || (value1 < 0) || (value1 > 7))
+         if ((Op1 != 0x281) || (Value1 < 0) || (Value1 > 7))
             Error("1st operand has to be between 0 and 7");
          else {
-            if ((op2&0xff0) == 0x300) { // A,B,C,D,E,H,L,(HL)
-               *iRAM++ = Op0_24;
-               *iRAM++ = Op0_16 | (value1 << 3) | (op2&0x07);
-            } else if ((op2&0xff0) == 0x630) { // (IX+d) or (IY+d)
-               *iRAM++ = (op2&0x01)? 0xfd: 0xdd;
-               *iRAM++ = Op0_24;
-               if (op2Recalc) { // expression undefined?
-                  op2Recalc->typ = 0; // add a single byte
-                  op2Recalc->adr = iRAM - RAM;
-                  op2Recalc = nullptr; // processing done
+            if ((Op2&0xff0) == 0x300) { // A,B,C,D,E,H,L,(HL)
+               *RamP++ = Op0a;
+               *RamP++ = Op0b | (Value1 << 3) | (Op2&7);
+            } else if ((Op2&0xff0) == 0x630) { // (IX+d) or (IY+d)
+               *RamP++ = (Op2&1)? 0375: 0335;
+               *RamP++ = Op0a;
+               if (Patch2) { // expression undefined?
+                  Patch2->Type = 0; // add a single byte
+                  Patch2->Addr = RamP - RAM;
+                  Patch2 = nullptr; // processing done
                }
-               *iRAM++ = value2;
-               *iRAM++ = Op0_16 | (value1 << 3) | 6;
+               *RamP++ = Value2;
+               *RamP++ = Op0b | (Value1 << 3) | 6;
             } else
                Error("2nd operand wrong");
          }
       break;
       case 0x05: // IM (one parameter: 0,1,2)
-         if ((op1 != 0x281) || (op2))
+         if ((Op1 != 0x281) || (Op2))
             Error("operand wrong");
          else {
-            if ((value1 < 0) || (value1 > 2))
+            if ((Value1 < 0) || (Value1 > 2))
                Error("Operand value has to be 0, 1 or 2");
             else {
-               if (value1 > 0)
-                  value1++;
-               *iRAM++ = Op0_24;
-               *iRAM++ = Op0_16 | ((value1&0x07) << 3);
+               if (Value1 > 0)
+                  Value1++;
+               *RamP++ = Op0a;
+               *RamP++ = Op0b | ((Value1&7) << 3);
             }
          }
       break;
       case 0x06: // ADD,ADC,SUB,SBC,AND,XOR,OR,CP
-         switch (op1) {
+         switch (Op1) {
             case 0x312: // HL
-               if ((op2 >= 0x310) && (op2 <= 0x313)) { // BC,DE,HL,SP
-                  switch (Op0_24) {
-                     case 0x80: // ADD
-                        *iRAM++ = 0x09 | ((op2&0x03) << 4);
+               if ((Op2 >= 0x310) && (Op2 <= 0x313)) { // BC,DE,HL,SP
+                  switch (Op0a) {
+                     case 0200: // ADD
+                        *RamP++ = 0011 | ((Op2&3) << 4);
                      break;
-                     case 0x88: // ADC
-                        *iRAM++ = 0xed;
-                        *iRAM++ = 0x4a | ((op2&0x03) << 4);
+                     case 0210: // ADC
+                        *RamP++ = 0355;
+                        *RamP++ = 0112 | ((Op2&3) << 4);
                      break;
-                     case 0x98: // SBC
-                        *iRAM++ = 0xed;
-                        *iRAM++ = 0x42 | ((op2&0x03) << 4);
+                     case 0230: // SBC
+                        *RamP++ = 0355;
+                        *RamP++ = 0102 | ((Op2&3) << 4);
                      break;
                      default:
                         Error("Opcode with this <ea> not allowed");
@@ -217,71 +209,71 @@ static void DoOpcode(CommandP &c) {
             break;
             case 0x330: // IX
             case 0x331: // IY
-               if (Op0_24 != 0x80) // only ADD IX/IY,RR
+               if (Op0a != 0200) // only ADD IX/IY,RR
                   Error("Only ADD IX,[BC,DE,IX,SP] or ADD IY,[BC,DE,IY,SP] are possible");
-               switch (op2) {
+               switch (Op2) {
                   case 0x310: // BC
-                     *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-                     *iRAM++ = 0x09;
+                     *RamP++ = (Op1&1)? 0375: 0335;
+                     *RamP++ = 0011;
                   break;
                   case 0x311: // DE
-                     *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-                     *iRAM++ = 0x19;
+                     *RamP++ = (Op1&1)? 0375: 0335;
+                     *RamP++ = 0031;
                   break;
                   case 0x330: // IX
                   case 0x331: // IY
-                     if (op1 == op2) {
-                        *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-                        *iRAM++ = 0x29;
+                     if (Op1 == Op2) {
+                        *RamP++ = (Op1&1)? 0375: 0335;
+                        *RamP++ = 0051;
                      } else
                         Error("Only ADD IX,IY or ADD IY,IY are possible");
                   break;
                   case 0x313: // SP
-                     *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-                     *iRAM++ = 0x39;
+                     *RamP++ = (Op1&1)? 0375: 0335;
+                     *RamP++ = 0071;
                   break;
                   default:
                      Error("Opcode with this <ea> not allowed");
                }
             break;
             default:
-               if ((op1 == 0x307) && (op2)) { // accumulator?
-                  op1 = op2;
-                  value1 = value2; // Shift 2nd operand to the beginning
-                  op1Recalc = op2Recalc;
-                  op2Recalc = nullptr;
+               if ((Op1 == 0x307) && (Op2)) { // accumulator?
+                  Op1 = Op2;
+                  Value1 = Value2; // Shift 2nd operand to the beginning
+                  Patch1 = Patch2;
+                  Patch2 = nullptr;
                }
-               switch (op1&0xff0) {
+               switch (Op1&0xff0) {
                   case 0x350: // X,HX
-                     *iRAM++ = 0xdd;
-                     *iRAM++ = Op0_24 | (op1&7);
+                     *RamP++ = 0335;
+                     *RamP++ = Op0a | (Op1&7);
                   break;
                   case 0x360: // Y,HY
-                     *iRAM++ = 0xfd;
-                     *iRAM++ = Op0_24 | (op1&7);
+                     *RamP++ = 0375;
+                     *RamP++ = Op0a | (Op1&7);
                   break;
                   case 0x300: // A,B,C,D,E,H,L,(HL)
-                     *iRAM++ = Op0_24 | (op1&7);
+                     *RamP++ = Op0a | (Op1&7);
                   break;
                   case 0x630: // (IX+d) or (IY+d)
-                     *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-                     *iRAM++ = Op0_24 | 6;
-                     if (op1Recalc) { // expression undefined?
-                        op1Recalc->typ = 0; // add a single byte
-                        op1Recalc->adr = iRAM - RAM;
-                        op1Recalc = nullptr; // processing done
+                     *RamP++ = (Op1&1)? 0375: 0335;
+                     *RamP++ = Op0a | 6;
+                     if (Patch1) { // expression undefined?
+                        Patch1->Type = 0; // add a single byte
+                        Patch1->Addr = RamP - RAM;
+                        Patch1 = nullptr; // processing done
                      }
-                     *iRAM++ = value1;
+                     *RamP++ = Value1;
                   break;
                   case 0x280: // n
-                     if (op1 == 0x281) {
-                        *iRAM++ = Op0_16;
-                        if (op1Recalc) { // expression undefined?
-                           op1Recalc->typ = 0; // add a single byte
-                           op1Recalc->adr = iRAM - RAM;
-                           op1Recalc = nullptr; // processing done
+                     if (Op1 == 0x281) {
+                        *RamP++ = Op0b;
+                        if (Patch1) { // expression undefined?
+                           Patch1->Type = 0; // add a single byte
+                           Patch1->Addr = RamP - RAM;
+                           Patch1 = nullptr; // processing done
                         }
-                        *iRAM++ = value1;
+                        *RamP++ = Value1;
                         break;
                      }
                   default:
@@ -290,57 +282,57 @@ static void DoOpcode(CommandP &c) {
          }
       break;
       case 0x07: // INC, DEC, like 0x06 without absolute address
-         if (op2)
+         if (Op2)
             Error("2nd operand not allowed");
-         if ((op1&0xff0) == 0x300) { // A,B,C,D,E,H,L,(HL)
-            *iRAM++ = Op0_24 | ((op1&7) << 3);
-         } else if ((op1&0xff0) == 0x630) { // (IX+d) or (IY+d)
-            *iRAM++ = (op1&1)? 0xfd: 0xdd;
-            *iRAM++ = Op0_24 | (6 << 3);
-            if (op1Recalc) { // expression undefined?
-               op1Recalc->typ = 0; // add a single byte
-               op1Recalc->adr = iRAM - RAM;
-               op1Recalc = nullptr; // processing done
+         if ((Op1&0xff0) == 0x300) { // A,B,C,D,E,H,L,(HL)
+            *RamP++ = Op0a | ((Op1&7) << 3);
+         } else if ((Op1&0xff0) == 0x630) { // (IX+d) or (IY+d)
+            *RamP++ = (Op1&1)? 0375: 0335;
+            *RamP++ = Op0a | (6 << 3);
+            if (Patch1) { // expression undefined?
+               Patch1->Type = 0; // add a single byte
+               Patch1->Addr = RamP - RAM;
+               Patch1 = nullptr; // processing done
             }
-            *iRAM++ = value1;
+            *RamP++ = Value1;
          } else {
-            bool decFlag = Op0_24&1; // True: DEC, False: INC
-            switch (op1) {
+            bool DecFlag = Op0a&1; // True: DEC, False: INC
+            switch (Op1) {
                case 0x354: // HX
-                  *iRAM++ = 0xdd;
-                  *iRAM++ = decFlag? 0x25: 0x24;
+                  *RamP++ = 0335;
+                  *RamP++ = DecFlag? 0045: 0044;
                break;
                case 0x355: // X
-                  *iRAM++ = 0xdd;
-                  *iRAM++ = decFlag? 0x2d: 0x2c;
+                  *RamP++ = 0335;
+                  *RamP++ = DecFlag? 0055: 0054;
                break;
                case 0x364: // HY
-                  *iRAM++ = 0xfd;
-                  *iRAM++ = decFlag? 0x25: 0x24;
+                  *RamP++ = 0375;
+                  *RamP++ = DecFlag? 0045: 0044;
                break;
                case 0x365: // Y
-                  *iRAM++ = 0xfd;
-                  *iRAM++ = decFlag? 0x2d: 0x2c;
+                  *RamP++ = 0375;
+                  *RamP++ = DecFlag? 0055: 0054;
                break;
                case 0x310: // BC
-                  *iRAM++ = decFlag? 0x0b: 0x03;
+                  *RamP++ = DecFlag? 0013: 0003;
                break;
                case 0x311: // DE
-                  *iRAM++ = decFlag? 0x1b: 0x13;
+                  *RamP++ = DecFlag? 0033: 0023;
                break;
                case 0x312: // HL
-                  *iRAM++ = decFlag? 0x2b: 0x23;
+                  *RamP++ = DecFlag? 0053: 0043;
                break;
                case 0x313: // HL
-                  *iRAM++ = decFlag? 0x3b: 0x33;
+                  *RamP++ = DecFlag? 0073: 0063;
                break;
                case 0x330: // IX
-                  *iRAM++ = 0xdd;
-                  *iRAM++ = decFlag? 0x2b: 0x23;
+                  *RamP++ = 0335;
+                  *RamP++ = DecFlag? 0053: 0043;
                break;
                case 0x331: // IY
-                  *iRAM++ = 0xfd;
-                  *iRAM++ = decFlag? 0x2b: 0x23;
+                  *RamP++ = 0375;
+                  *RamP++ = DecFlag? 0053: 0043;
                break;
                default:
                   Error("Addressing mode not allowed");
@@ -348,84 +340,80 @@ static void DoOpcode(CommandP &c) {
          }
       break;
       case 0x08: // JP, CALL, JR (Warning! Different <ea>!)
-         if (op1 == 0x301)
-            op1 = 0x403; // convert register 'C' into condition 'C'
-         switch (Op0_24) {
-            case 0xc2: // JP
-               if ((op1 >= 0x400) && (op1 <= 0x4ff) && (op2 == 0x281)) { // cond,Adr
-                  *iRAM++ = Op0_24 | ((op1&0x07) << 3);
-                  if (op2Recalc) { // expression undefined?
-                     op2Recalc->typ = 1; // add two bytes
-                     op2Recalc->adr = iRAM - RAM;
-                     op2Recalc = nullptr; // processing done
+         if (Op1 == 0x301)
+            Op1 = 0x403; // convert register 'C' into condition 'C'
+         switch (Op0a) {
+            case 0302: // JP
+               if ((Op1 >= 0x400) && (Op1 <= 0x4ff) && (Op2 == 0x281)) { // cond,Adr
+                  *RamP++ = Op0a | ((Op1&7) << 3);
+                  if (Patch2) { // expression undefined?
+                     Patch2->Type = 1; // add two bytes
+                     Patch2->Addr = RamP - RAM;
+                     Patch2 = nullptr; // processing done
                   }
-                  *iRAM++ = value2;
-                  *iRAM++ = value2 >> 8;
-               } else if ((op1 == 0x306) && !op2) { // JP (HL)
-                  *iRAM++ = 0xe9;
-               } else if ((op1 == 0x530) && !op2) { // JP (IX)
-                  *iRAM++ = 0xdd;
-                  *iRAM++ = 0xe9;
-               } else if ((op1 == 0x531) && !op2) { // JP (IY)
-                  *iRAM++ = 0xfd;
-                  *iRAM++ = 0xe9;
-               } else if ((op1 == 0x281) | !op2) { // JP Adr
-                  *iRAM++ = Op0_16;
-                  if (op1Recalc) { // expression undefined?
-                     op1Recalc->typ = 1; // add two bytes
-                     op1Recalc->adr = iRAM - RAM;
-                     op1Recalc = nullptr; // processing done
+                  *RamP++ = Value2;
+                  *RamP++ = Value2 >> 8;
+               } else if ((Op1 == 0x306) && !Op2) { // JP (HL)
+                  *RamP++ = 0351;
+               } else if ((Op1 == 0x530) && !Op2) { // JP (IX)
+                  *RamP++ = 0335;
+                  *RamP++ = 0351;
+               } else if ((Op1 == 0x531) && !Op2) { // JP (IY)
+                  *RamP++ = 0375;
+                  *RamP++ = 0351;
+               } else if ((Op1 == 0x281) | !Op2) { // JP Adr
+                  *RamP++ = Op0b;
+                  if (Patch1) { // expression undefined?
+                     Patch1->Type = 1; // add two bytes
+                     Patch1->Addr = RamP - RAM;
+                     Patch1 = nullptr; // processing done
                   }
-                  *iRAM++ = value1;
-                  *iRAM++ = value1 >> 8;
+                  *RamP++ = Value1;
+                  *RamP++ = Value1 >> 8;
                } else
                   Error("1st operand wrong");
             break;
-            case 0x20: // JR
-               if ((op1 >= 0x400) && (op1 <= 0x403) && (op2 == 0x281)) { // Cond,Adr
-                  *iRAM++ = Op0_24 | ((op1&0x07) << 3);
-                  if (op2Recalc) { // expression undefined?
-                     op2Recalc->typ = 2; // ein PC-rel-Byte einsetzen
-                     op2Recalc->adr = iRAM - RAM;
-                     op2Recalc = nullptr; // processing done
+            case 0040: // JR
+               if ((Op1 >= 0x400) && (Op1 <= 0x403) && (Op2 == 0x281)) { // Cond,Adr
+                  *RamP++ = Op0a | ((Op1&7) << 3);
+                  if (Patch2) { // expression undefined?
+                     Patch2->Type = 2; // ein PC-rel-Byte einsetzen
+                     Patch2->Addr = RamP - RAM;
+                     Patch2 = nullptr; // processing done
                   }
-               {
-                  uint8_t b = value2 - (iRAM - RAM) - 1;
-                  *iRAM++ = b;
-               }
-               } else if ((op1 == 0x281) && !op2) { // JR Adr
-                  *iRAM++ = Op0_16;
-                  if (op1Recalc) { // expression undefined?
-                     op1Recalc->typ = 2; // ein PC-rel-Byte einsetzen
-                     op1Recalc->adr = iRAM - RAM;
-                     op1Recalc = nullptr; // processing done
+                  uint8_t B = Value2 - (RamP - RAM) - 1;
+                  *RamP++ = B;
+               } else if ((Op1 == 0x281) && !Op2) { // JR Adr
+                  *RamP++ = Op0b;
+                  if (Patch1) { // expression undefined?
+                     Patch1->Type = 2; // ein PC-rel-Byte einsetzen
+                     Patch1->Addr = RamP - RAM;
+                     Patch1 = nullptr; // processing done
                   }
-               {
-                  uint8_t b = value1 - (iRAM - RAM) - 1;
-                  *iRAM++ = b;
-               }
+                  uint8_t B = Value1 - (RamP - RAM) - 1;
+                  *RamP++ = B;
                } else
                   Error("Condition not allowed");
             break;
-            case 0xc4: // CALL
-               if ((op1 >= 0x400) && (op1 <= 0x4ff) && (op2 == 0x281)) { // Cond,Adr
-                  *iRAM++ = Op0_24 | ((op1&0x07) << 3);
-                  if (op2Recalc) { // expression undefined?
-                     op2Recalc->typ = 1; // add two bytes
-                     op2Recalc->adr = iRAM - RAM;
-                     op2Recalc = nullptr; // processing done
+            case 0304: // CALL
+               if ((Op1 >= 0x400) && (Op1 <= 0x4ff) && (Op2 == 0x281)) { // Cond,Adr
+                  *RamP++ = Op0a | ((Op1&7) << 3);
+                  if (Patch2) { // expression undefined?
+                     Patch2->Type = 1; // add two bytes
+                     Patch2->Addr = RamP - RAM;
+                     Patch2 = nullptr; // processing done
                   }
-                  *iRAM++ = value2;
-                  *iRAM++ = value2 >> 8;
-               } else if ((op1 == 0x281) && !op2) { // CALL Adr
-                  *iRAM++ = Op0_16;
-                  if (op1Recalc) { // expression undefined?
-                     op1Recalc->typ = 1; // add two bytes
-                     op1Recalc->adr = iRAM - RAM;
-                     op1Recalc = nullptr; // processing done
+                  *RamP++ = Value2;
+                  *RamP++ = Value2 >> 8;
+               } else if ((Op1 == 0x281) && !Op2) { // CALL Adr
+                  *RamP++ = Op0b;
+                  if (Patch1) { // expression undefined?
+                     Patch1->Type = 1; // add two bytes
+                     Patch1->Addr = RamP - RAM;
+                     Patch1 = nullptr; // processing done
                   }
-                  *iRAM++ = value1;
-                  *iRAM++ = value1 >> 8;
+                  *RamP++ = Value1;
+                  *RamP++ = Value1 >> 8;
                } else
                   Error("1st operand wrong");
             break;
@@ -434,114 +422,113 @@ static void DoOpcode(CommandP &c) {
          }
       break;
       case 0x09:
-         if (op2) // RET-Befehl
+         if (Op2) // RET-Befehl
             Error("Too many operands");
-         else if (!op1) // keine Condition angegeben?
-            *iRAM++ = Op0_16; // normalen Opcode nehmen
+         else if (!Op1) // keine Condition angegeben?
+            *RamP++ = Op0b; // normalen Opcode nehmen
          else {
-            if (op1 == 0x301)
-               op1 = 0x403; // Register C in Condition C wandeln
-            if ((op1&0xf00) != 0x400)
+            if (Op1 == 0x301)
+               Op1 = 0x403; // Register C in Condition C wandeln
+            if ((Op1&0xf00) != 0x400)
                Error("Wrong Operand");
             else
-               *iRAM++ = Op0_24 | ((op1&0x07) << 3);
+               *RamP++ = Op0a | ((Op1&7) << 3);
          }
       break;
       case 0x0a: // RST (00,08,10,18,20,28,30,38)
-         if (op2)
+         if (Op2)
             Error("Too many operands");
-         else if (op1 == 0x281) { // n
-            int16_t i = -1;
-            switch (value1) {
+         else if (Op1 == 0x281) { // n
+            int16_t n = -1;
+            switch (Value1) {
                case 0:
-                  i = 0x00;
+                  n = 000;
                break;
                case 1:
                case 8:
-                  i = 0x08;
+                  n = 010;
                break;
                case 2:
                case 10:
                case 0x10:
-                  i = 0x10;
+                  n = 020;
                break;
                case 3:
                case 18:
                case 0x18:
-                  i = 0x18;
+                  n = 030;
                break;
                case 4:
                case 20:
                case 0x20:
-                  i = 0x20;
+                  n = 040;
                break;
                case 5:
                case 28:
                case 0x28:
-                  i = 0x28;
+                  n = 050;
                break;
                case 6:
                case 30:
                case 0x30:
-                  i = 0x30;
+                  n = 060;
                break;
                case 7:
                case 38:
                case 0x38:
-                  i = 0x38;
+                  n = 070;
                break;
                default:
                   Error("Only 00,08,10,18,20,28,30,38 are allowed");
             }
-            if (i >= 0)
-               *iRAM++ = Op0_24 | i;
+            if (n >= 0)
+               *RamP++ = Op0a | n;
          } else
             Error("Addressing mode not allowed");
       break;
-      case 0x0b: // DJNZ
-         *iRAM++ = Op0_24;
-         if (op1Recalc) { // expression undefined?
-            op1Recalc->typ = 2; // ein PC-rel-Byte einsetzen
-            op1Recalc->adr = iRAM - RAM;
-            op1Recalc = nullptr; // processing done
+      case 0x0b: { // DJNZ
+         *RamP++ = Op0a;
+         if (Patch1) { // expression undefined?
+            Patch1->Type = 2; // ein PC-rel-Byte einsetzen
+            Patch1->Addr = RamP - RAM;
+            Patch1 = nullptr; // processing done
          }
-      {
-         uint8_t b = value1 - (iRAM - RAM) - 1;
-         *iRAM++ = b; // relocate
+         uint8_t B = Value1 - (RamP - RAM) - 1;
+         *RamP++ = B; // relocate
       }
       break;
       case 0x0c: // EX: (SP),dreg or DE,HL or AF,AF'
-         if ((op1 == 0x311) && (op2 == 0x312)) // EX DE,HL
-            *iRAM++ = 0xeb;
-         else if ((op1 == 0x323) && (op2 == 0x324)) { // EX AF,AF'
-            *iRAM++ = 0x08;
-         } else if ((op1 == 0x513) && (op2 == 0x312)) // EX (SP),HL
-            *iRAM++ = 0xe3;
-         else if ((op1 == 0x513) && (op2 == 0x330)) { // EX (SP),IX
-            *iRAM++ = 0xdd;
-            *iRAM++ = 0xe3;
-         } else if ((op1 == 0x513) && (op2 == 0x331)) { // EX (SP),IY
-            *iRAM++ = 0xfd;
-            *iRAM++ = 0xe3;
+         if ((Op1 == 0x311) && (Op2 == 0x312)) // EX DE,HL
+            *RamP++ = 0353;
+         else if ((Op1 == 0x323) && (Op2 == 0x324)) { // EX AF,AF'
+            *RamP++ = 0010;
+         } else if ((Op1 == 0x513) && (Op2 == 0x312)) // EX (SP),HL
+            *RamP++ = 0343;
+         else if ((Op1 == 0x513) && (Op2 == 0x330)) { // EX (SP),IX
+            *RamP++ = 0335;
+            *RamP++ = 0343;
+         } else if ((Op1 == 0x513) && (Op2 == 0x331)) { // EX (SP),IY
+            *RamP++ = 0375;
+            *RamP++ = 0343;
          } else
             Error("Operand combination not allowed with EX");
       break;
       case 0x0d: // LD
-         if (!(op1&op2))
+         if (!(Op1&Op2))
             Error("Operand missing");
          else {
             uint8_t FirstByte = 0;
-            switch (op1) {
+            switch (Op1) {
                case 0x530: // LD (IX),
                case 0x531: // LD (IY),
-                  op1 = (op1 == 0x530)? 0x356: 0x366;
+                  Op1 = (Op1 == 0x530)? 0x356: 0x366;
                case 0x354: // HX
                case 0x355: // X
                case 0x364: // HY
                case 0x365: // Y
-                  FirstByte = ((op1&0xff0) == 0x350)? 0xdd: 0xfd;
-                  *iRAM++ = FirstByte;
-                  op1 &= 0xf0f; // remap H and L
+                  FirstByte = ((Op1&0xff0) == 0x350)? 0335: 0375;
+                  *RamP++ = FirstByte;
+                  Op1 &= 0xf0f; // remap H and L
                case 0x300: // B
                case 0x301: // C
                case 0x302: // D
@@ -550,82 +537,82 @@ static void DoOpcode(CommandP &c) {
                case 0x305: // L
                case 0x306: // (HL)
                case 0x307: // A
-                  switch (op2&0xff0) {
+                  switch (Op2&0xff0) {
                      case 0x530: // LD <ea>,(IX), or LD <ea>,(IY)
-                        op2 = (op2 == 0x530)? 0x356: 0x366;
+                        Op2 = (Op2 == 0x530)? 0x356: 0x366;
                      case 0x350: // X,HX
                      case 0x360: // Y,HY
                      {
-                        bool flag = ((op2&0xff0) == 0x350);
+                        bool Flag = ((Op2&0xff0) == 0x350);
                         switch (FirstByte) {
-                           case 0xdd: // IX
-                              if (!flag)
+                           case 0335: // IX
+                              if (!Flag)
                                  Error("IX,IY geht nicht");
                            break;
-                           case 0xfd: // IY
-                              if (flag)
+                           case 0375: // IY
+                              if (Flag)
                                  Error("IY,IX geht nicht");
                            break;
                            default: // noch nix
-                              *iRAM++ = (flag)? 0xdd: 0xfd;
+                              *RamP++ = (Flag)? 0335: 0375;
                            break;
                         }
                      }
-                        op2 &= 0xf0f; // remap H and L
+                        Op2 &= 0xf0f; // remap H and L
                      case 0x300: // B,C,D,E,H,L,(HL),A
-                        *iRAM++ = 0x40 | ((op1&0x07) << 3) | (op2&0x07);
+                        *RamP++ = 0100 | ((Op1&7) << 3) | (Op2&7);
                      break;
                      case 0x510: // (BC),(DE),(SP)
-                        if (op1 == 0x307) {
-                           if (op2 == 0x510)
-                              *iRAM++ = 0x0a;
-                           else if (op2 == 0x511)
-                              *iRAM++ = 0x1a;
+                        if (Op1 == 0x307) {
+                           if (Op2 == 0x510)
+                              *RamP++ = 0012;
+                           else if (Op2 == 0x511)
+                              *RamP++ = 0032;
                            else
                               Error("(SP) not allowed");
                         } else
                            Error("Only LD A,(BC) or LD A,(DE) allowed");
                      break;
                      case 0x630: // (IX+d), (IY+d)
-                        if (op1 != 0x306) { // (HL)
-                           *iRAM++ = (op2&0x01)? 0xfd: 0xdd;
-                           *iRAM++ = 0x46 | ((op1&0x07) << 3);
-                           if (op2Recalc) { // expression undefined?
-                              op2Recalc->typ = 0; // add a single byte
-                              op2Recalc->adr = iRAM - RAM;
-                              op2Recalc = nullptr; // processing done
+                        if (Op1 != 0x306) { // (HL)
+                           *RamP++ = (Op2&1)? 0375: 0335;
+                           *RamP++ = 0106 | ((Op1&7) << 3);
+                           if (Patch2) { // expression undefined?
+                              Patch2->Type = 0; // add a single byte
+                              Patch2->Addr = RamP - RAM;
+                              Patch2 = nullptr; // processing done
                            }
-                           *iRAM++ = value2;
+                           *RamP++ = Value2;
                         } else
                            Error("LD (HL),(IX/IY+d) not allowed");
                      break;
                      case 0x280: // (n), n
-                        if (op2 == 0x281) {
-                           *iRAM++ = 0x06 | ((op1&0x07) << 3);
-                           if (op2Recalc) { // expression undefined?
-                              op2Recalc->typ = 0; // add a single byte
-                              op2Recalc->adr = iRAM - RAM;
-                              op2Recalc = nullptr; // processing done
+                        if (Op2 == 0x281) {
+                           *RamP++ = 0006 | ((Op1&7) << 3);
+                           if (Patch2) { // expression undefined?
+                              Patch2->Type = 0; // add a single byte
+                              Patch2->Addr = RamP - RAM;
+                              Patch2 = nullptr; // processing done
                            }
-                           *iRAM++ = value2;
+                           *RamP++ = Value2;
                         } else {
-                           if (op1 == 0x307) {
-                              *iRAM++ = 0x3a;
-                              if (op2Recalc) { // expression undefined?
-                                 op2Recalc->typ = 1; // add two bytes
-                                 op2Recalc->adr = iRAM - RAM;
-                                 op2Recalc = nullptr; // processing done
+                           if (Op1 == 0x307) {
+                              *RamP++ = 0072;
+                              if (Patch2) { // expression undefined?
+                                 Patch2->Type = 1; // add two bytes
+                                 Patch2->Addr = RamP - RAM;
+                                 Patch2 = nullptr; // processing done
                               }
-                              *iRAM++ = value2;
-                              *iRAM++ = value2 >> 8;
+                              *RamP++ = Value2;
+                              *RamP++ = Value2 >> 8;
                            } else
                               Error("Only LD A,(n) allowed");
                         }
                      break;
                      case 0x340: // I,R
-                        if (op1 == 0x307) {
-                           *iRAM++ = 0xed;
-                           *iRAM++ = (op2 != 0x340)? 0x57: 0x5f;
+                        if (Op1 == 0x307) {
+                           *RamP++ = 0355;
+                           *RamP++ = (Op2 != 0x340)? 0127: 0137;
                         } else
                            Error("Only LD A,I or LD A,R allowed");
                      break;
@@ -635,22 +622,22 @@ static void DoOpcode(CommandP &c) {
                break;
                case 0x340: // I,R
                case 0x341: // I,R
-                  if (op2 == 0x307) { // A
-                     *iRAM++ = 0xed;
-                     *iRAM++ = (op1 != 0x340)? 0x47: 0x4f;
+                  if (Op2 == 0x307) { // A
+                     *RamP++ = 0355;
+                     *RamP++ = (Op1 != 0x340)? 0107: 0117;
                   } else
                      Error("Only LD I,A or LD R,A allowed");
                break;
                case 0x510: // (BC)
                case 0x511: // (DE)
-                  if (op2 == 0x307) { // A
-                     *iRAM++ = (op1 == 0x510)? 0x02: 0x12;
+                  if (Op2 == 0x307) { // A
+                     *RamP++ = (Op1 == 0x510)? 0002: 0022;
                   } else
                      Error("Only LD (BC),A or LD (DE),A allowed");
                break;
                case 0x630: // (IX+d)
                case 0x631: // (IY+d)
-                  switch (op2) {
+                  switch (Op2) {
                      case 0x300: // B
                      case 0x301: // C
                      case 0x302: // D
@@ -658,136 +645,136 @@ static void DoOpcode(CommandP &c) {
                      case 0x304: // H
                      case 0x305: // L
                      case 0x307: // A
-                        *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-                        *iRAM++ = 0x70 | (op2&0x07);
-                        if (op1Recalc) { // expression undefined?
-                           op1Recalc->typ = 0; // add a single byte
-                           op1Recalc->adr = iRAM - RAM;
-                           op1Recalc = nullptr; // processing done
+                        *RamP++ = (Op1&1)? 0375: 0335;
+                        *RamP++ = 0160 | (Op2&7);
+                        if (Patch1) { // expression undefined?
+                           Patch1->Type = 0; // add a single byte
+                           Patch1->Addr = RamP - RAM;
+                           Patch1 = nullptr; // processing done
                         }
-                        *iRAM++ = value1;
+                        *RamP++ = Value1;
                      break;
                      case 0x281: // n
-                        *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-                        *iRAM++ = 0x36;
-                        if (op1Recalc) { // expression undefined?
-                           op1Recalc->typ = 0; // add a single byte
-                           op1Recalc->adr = iRAM - RAM;
-                           op1Recalc = nullptr; // processing done
+                        *RamP++ = (Op1&1)? 0375: 0335;
+                        *RamP++ = 0066;
+                        if (Patch1) { // expression undefined?
+                           Patch1->Type = 0; // add a single byte
+                           Patch1->Addr = RamP - RAM;
+                           Patch1 = nullptr; // processing done
                         }
-                        *iRAM++ = value1;
-                        if (op2Recalc) { // expression undefined?
-                           op2Recalc->typ = 0; // add a single byte
-                           op2Recalc->adr = iRAM - RAM;
-                           op2Recalc = nullptr; // processing done
+                        *RamP++ = Value1;
+                        if (Patch2) { // expression undefined?
+                           Patch2->Type = 0; // add a single byte
+                           Patch2->Addr = RamP - RAM;
+                           Patch2 = nullptr; // processing done
                         }
-                        *iRAM++ = value2;
+                        *RamP++ = Value2;
                      break;
                      default:
                         Error("2nd operand wrong");
                   }
                break;
                case 0x280: // (n)
-                  switch (op2) {
+                  switch (Op2) {
                      case 0x307: // A
-                        *iRAM++ = 0x32;
-                        if (op1Recalc) { // expression undefined?
-                           op1Recalc->typ = 1; // add two bytes
-                           op1Recalc->adr = iRAM - RAM;
-                           op1Recalc = nullptr; // processing done
+                        *RamP++ = 0062;
+                        if (Patch1) { // expression undefined?
+                           Patch1->Type = 1; // add two bytes
+                           Patch1->Addr = RamP - RAM;
+                           Patch1 = nullptr; // processing done
                         }
-                        *iRAM++ = value1;
-                        *iRAM++ = value1 >> 8;
+                        *RamP++ = Value1;
+                        *RamP++ = Value1 >> 8;
                      break;
                      case 0x312: // HL
-                        *iRAM++ = 0x22;
-                        if (op1Recalc) { // expression undefined?
-                           op1Recalc->typ = 1; // add two bytes
-                           op1Recalc->adr = iRAM - RAM;
-                           op1Recalc = nullptr; // processing done
+                        *RamP++ = 0042;
+                        if (Patch1) { // expression undefined?
+                           Patch1->Type = 1; // add two bytes
+                           Patch1->Addr = RamP - RAM;
+                           Patch1 = nullptr; // processing done
                         }
-                        *iRAM++ = value1;
-                        *iRAM++ = value1 >> 8;
+                        *RamP++ = Value1;
+                        *RamP++ = Value1 >> 8;
                      break;
                      case 0x310: // BC
                      case 0x311: // DE
                      case 0x313: // SP
-                        *iRAM++ = 0xed;
-                        *iRAM++ = 0x43 | ((op2&0x03) << 4);
-                        if (op1Recalc) { // expression undefined?
-                           op1Recalc->typ = 1; // add two bytes
-                           op1Recalc->adr = iRAM - RAM;
-                           op1Recalc = nullptr; // processing done
+                        *RamP++ = 0355;
+                        *RamP++ = 0103 | ((Op2&3) << 4);
+                        if (Patch1) { // expression undefined?
+                           Patch1->Type = 1; // add two bytes
+                           Patch1->Addr = RamP - RAM;
+                           Patch1 = nullptr; // processing done
                         }
-                        *iRAM++ = value1;
-                        *iRAM++ = value1 >> 8;
+                        *RamP++ = Value1;
+                        *RamP++ = Value1 >> 8;
                      break;
                      case 0x330: // IX
                      case 0x331: // IY
-                        *iRAM++ = (op2&0x01)? 0xfd: 0xdd;
-                        *iRAM++ = 0x22;
-                        if (op1Recalc) { // expression undefined?
-                           op1Recalc->typ = 1; // add two bytes
-                           op1Recalc->adr = iRAM - RAM;
-                           op1Recalc = nullptr; // processing done
+                        *RamP++ = (Op2&1)? 0375: 0335;
+                        *RamP++ = 0042;
+                        if (Patch1) { // expression undefined?
+                           Patch1->Type = 1; // add two bytes
+                           Patch1->Addr = RamP - RAM;
+                           Patch1 = nullptr; // processing done
                         }
-                        *iRAM++ = value1;
-                        *iRAM++ = value1 >> 8;
+                        *RamP++ = Value1;
+                        *RamP++ = Value1 >> 8;
                      break;
                      default:
                         Error("2nd operand wrong");
                   }
                break;
                case 0x313: // SP
-                  switch (op2) {
+                  switch (Op2) {
                      case 0x312: // HL
-                        *iRAM++ = 0xf9;
+                        *RamP++ = 0371;
                      break;
                      case 0x330: // IX
-                        *iRAM++ = 0xdd;
-                        *iRAM++ = 0xf9;
+                        *RamP++ = 0335;
+                        *RamP++ = 0371;
                      break;
                      case 0x331: // IY
-                        *iRAM++ = 0xfd;
-                        *iRAM++ = 0xf9;
+                        *RamP++ = 0375;
+                        *RamP++ = 0371;
                      break;
                   }
                case 0x310: // BC
                case 0x311: // DE
                case 0x312: // HL
-                  if ((op2 == 0x280) || (op2 == 0x281)) { // (n), n
-                     if (op2 == 0x281) { // n
-                        *iRAM++ = 0x01 | ((op1&0x03) << 4);
+                  if ((Op2 == 0x280) || (Op2 == 0x281)) { // (n), n
+                     if (Op2 == 0x281) { // n
+                        *RamP++ = 0001 | ((Op1&3) << 4);
                      } else { // (n)
-                        if (op1 == 0x312) // HL
-                           *iRAM++ = 0x2a;
+                        if (Op1 == 0x312) // HL
+                           *RamP++ = 0052;
                         else {
-                           *iRAM++ = 0xed;
-                           *iRAM++ = 0x4b | ((op1&0x03) << 4);
+                           *RamP++ = 0355;
+                           *RamP++ = 0113 | ((Op1&3) << 4);
                         }
                      }
-                     if (op2Recalc) { // expression undefined?
-                        op2Recalc->typ = 1; // add two bytes
-                        op2Recalc->adr = iRAM - RAM;
-                        op2Recalc = nullptr; // processing done
+                     if (Patch2) { // expression undefined?
+                        Patch2->Type = 1; // add two bytes
+                        Patch2->Addr = RamP - RAM;
+                        Patch2 = nullptr; // processing done
                      }
-                     *iRAM++ = value2;
-                     *iRAM++ = value2 >> 8;
-                  } else if (op2 != 0x312 && op2 != 0x330 && op2 != 0x331)
+                     *RamP++ = Value2;
+                     *RamP++ = Value2 >> 8;
+                  } else if (Op2 != 0x312 && Op2 != 0x330 && Op2 != 0x331)
                      Error("2nd operand wrong");
                break;
                case 0x330: // IX
                case 0x331: // IY
-                  if ((op2 == 0x280) || (op2 == 0x281)) { // (n), n
-                     *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-                     *iRAM++ = (op2 == 0x281)? 0x21: 0x2a;
-                     if (op2Recalc) { // expression undefined?
-                        op2Recalc->typ = 1; // add two bytes
-                        op2Recalc->adr = iRAM - RAM;
-                        op2Recalc = nullptr; // processing done
+                  if ((Op2 == 0x280) || (Op2 == 0x281)) { // (n), n
+                     *RamP++ = (Op1&1)? 0375: 0335;
+                     *RamP++ = (Op2 == 0x281)? 0041: 0052;
+                     if (Patch2) { // expression undefined?
+                        Patch2->Type = 1; // add two bytes
+                        Patch2->Addr = RamP - RAM;
+                        Patch2 = nullptr; // processing done
                      }
-                     *iRAM++ = value2;
-                     *iRAM++ = value2 >> 8;
+                     *RamP++ = Value2;
+                     *RamP++ = Value2 >> 8;
                   } else
                      Error("2nd operand wrong");
                break;
@@ -797,211 +784,205 @@ static void DoOpcode(CommandP &c) {
          }
       break;
       case 0x0e: // PUSH, POP: dreg
-         if (op2)
+         if (Op2)
             Error("Too many operands");
-         else if (((op1&0xff0) >= 0x310) && ((op1&0xff0) <= 0x33f)) { // double register?
-            if ((op1 >= 0x310) && (op1 <= 0x312))
-               *iRAM++ = Op0_24 | ((op1 - 0x310) << 4); // PUSH BC,DE,HL
-            else if (op1 == 0x323)
-               *iRAM++ = Op0_24 | ((op1 - 0x320) << 4); // PUSH AF
-            else if ((op1 == 0x330) | (op1 == 0x331)) { // PUSH IX,IY
-               *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-               *iRAM++ = Op0_16;
+         else if (((Op1&0xff0) >= 0x310) && ((Op1&0xff0) <= 0x33f)) { // double register?
+            if ((Op1 >= 0x310) && (Op1 <= 0x312))
+               *RamP++ = Op0a | ((Op1 - 0x310) << 4); // PUSH BC,DE,HL
+            else if (Op1 == 0x323)
+               *RamP++ = Op0a | ((Op1 - 0x320) << 4); // PUSH AF
+            else if ((Op1 == 0x330) | (Op1 == 0x331)) { // PUSH IX,IY
+               *RamP++ = (Op1&1)? 0375: 0335;
+               *RamP++ = Op0b;
             }
          } else
             Error("only double-registers are allowed");
       break;
       case 0x0f: // RR,RL,RRC,RLC,SRA,SLA,SRL
-         if (op2)
+         if (Op2)
             Error("Only one operand allowed");
-         else if ((op1&0xff0) == 0x300) { // B,C,D,E,H,L,(HL),A
-            *iRAM++ = 0xcb;
-            *iRAM++ = Op0_24 | (op1&0x07);
-         } else if ((op1 == 0x630) || (op1 == 0x631)) { // (IX+d), (IY+d)
-            *iRAM++ = (op1&0x01)? 0xfd: 0xdd;
-            *iRAM++ = 0xcb;
-            if (op1Recalc) { // expression undefined?
-               op1Recalc->typ = 0; // add a single byte
-               op1Recalc->adr = iRAM - RAM;
-               op1Recalc = nullptr; // processing done
+         else if ((Op1&0xff0) == 0x300) { // B,C,D,E,H,L,(HL),A
+            *RamP++ = 0313;
+            *RamP++ = Op0a | (Op1&7);
+         } else if ((Op1 == 0x630) || (Op1 == 0x631)) { // (IX+d), (IY+d)
+            *RamP++ = (Op1&1)? 0375: 0335;
+            *RamP++ = 0313;
+            if (Patch1) { // expression undefined?
+               Patch1->Type = 0; // add a single byte
+               Patch1->Addr = RamP - RAM;
+               Patch1 = nullptr; // processing done
             }
-            *iRAM++ = value1;
-            *iRAM++ = Op0_24 | 6;
+            *RamP++ = Value1;
+            *RamP++ = Op0a | 6;
          } else
             Error("operand not allowed");
       break;
       default:
          Error("unknown opcode type");
-         while (c->typ)
-            c++;
+         while (Cmd->Type)
+            Cmd++;
    }
-   PC = iRAM - RAM; // PC -> next opcode
-   checkPC(PC - 1); // last RAM position used
+   CurPC = RamP - RAM; // PC -> next opcode
+   CheckPC(CurPC - 1); // last RAM position used
 }
 
 // test for pseudo-opcodes
-static bool IgnoreUntilIF = false; // ignore all lines till next "ENDIF" (this could be a stack for nesting support)
+static bool PassOver = false; // ignore all lines till next "ENDIF" (this could be a stack for nesting support)
 
-static void DoPseudo(CommandP &c) {
-   MSG(2, "DoPseudo( %d, %X )\n", c->typ, c->val);
-   uint16_t iPC = PC;
-   switch (c++->val) { // all pseudo opcodes
-      case DEFB:
-      case DEFM:
-         c--;
+static void DoPseudo(CommandP &Cmd) {
+   Log(2, "DoPseudo( %d, %X )\n", Cmd->Type, Cmd->Value);
+   uint16_t PC = CurPC;
+   switch (Cmd++->Value) { // all pseudo opcodes
+      case _db:
+      case _dm:
+         Cmd--;
          do {
-            c++; // skip opcode or comma
-            if (c->typ != STRING) {
-               checkPC(iPC);
-               RAM[iPC++] = CalcTerm(c);
-               if (LastRecalc) { // expression undefined?
-                  LastRecalc->typ = 0; // add a single byte
-                  LastRecalc->adr = iPC - 1;
+            Cmd++; // skip opcode or comma
+            if (Cmd->Type != StrL) {
+               CheckPC(PC);
+               RAM[PC++] = GetExp(Cmd);
+               if (LastPatch) { // expression undefined?
+                  LastPatch->Type = 0; // add a single byte
+                  LastPatch->Addr = PC - 1;
                }
             } else {
-               char *sp;
-               sp = (char *)c++->val; // value = ptr to the string
-               checkPC(iPC + strlen(sp) - 1); // will it overflow?
-               while (*sp)
-                  RAM[iPC++] = *sp++; // transfer the string
+               char *SP = (char *)Cmd++->Value; // value = ptr to the string
+               CheckPC(PC + strlen(SP) - 1); // will it overflow?
+               while (*SP)
+                  RAM[PC++] = *SP++; // transfer the string
             }
-         } while ((c->typ == OPCODE) && (c->val == ','));
+         } while ((Cmd->Type == OpL) && (Cmd->Value == ','));
       break;
-      case DEFS:
-         iPC += CalcTerm(c); // advance the PC
-         if (LastRecalc)
+      case _ds:
+         PC += GetExp(Cmd); // advance the PC
+         if (LastPatch)
             Error("symbol not defined");
       break;
-      case DEFW:
-         c--;
+      case _dw:
+         Cmd--;
          do {
-            uint32_t val;
-            c++;
-            val = CalcTerm(c); // evaluate the express
-            if (LastRecalc) { // expression undefined?
-               LastRecalc->typ = 1; // add two bytes
-               LastRecalc->adr = iPC;
+            Cmd++;
+            uint32_t Value = GetExp(Cmd); // evaluate the express
+            if (LastPatch) { // expression undefined?
+               LastPatch->Type = 1; // add two bytes
+               LastPatch->Addr = PC;
             }
-            checkPC(iPC + 1); // will it overflow?
-            RAM[iPC++] = val;
-            RAM[iPC++] = val >> 8;
-         } while ((c->typ == OPCODE) && (c->val == ','));
+            CheckPC(PC + 1); // will it overflow?
+            RAM[PC++] = Value;
+            RAM[PC++] = Value >> 8;
+         } while ((Cmd->Type == OpL) && (Cmd->Value == ','));
       break;
-      case END:
-         if (IgnoreUntilIF)
+      case _end:
+         if (PassOver)
             Error("IF without ENDIF");
          Error("Reached the end of the source code -> exit");
       exit(0);
-      case ORG:
-         iPC = CalcTerm(c); // set the PC
-         if (LastRecalc)
+      case _org:
+         PC = GetExp(Cmd); // set the PC
+         if (LastPatch)
             Error("symbol not defined");
       break;
-      case IF:
-         if (!CalcTerm(c)) // IF condition false?
-            IgnoreUntilIF = true; // then ignore the next block
+      case _if:
+         if (!GetExp(Cmd)) // IF condition false?
+            PassOver = true; // then ignore the next block
       break;
-      case ENDIF:
-         IgnoreUntilIF = false; // never ignore from here on
+      case _endif:
+         PassOver = false; // never ignore from here on
       break;
-      case ELSE:
-         IgnoreUntilIF = !IgnoreUntilIF; // flip the condition
+      case _else:
+         PassOver = !PassOver; // flip the condition
       break;
-      case PRINT:
-         if (c->typ != STRING)
+      case _print:
+         if (Cmd->Type != StrL)
             Error("PRINT requires a string parameter");
          else
-            puts((char *)c++->val); // print a message
+            puts((char *)Cmd++->Value); // print a message
       break;
    }
-   PC = iPC;
+   CurPC = PC;
 }
 
 // Compile a single line into machine code
 void CompileLine(void) {
-   MSG(2, "CompileLine()\n");
-   CommandP c = Cmd;
-   SymbolP s;
-   uint16_t val;
-   if (!c->typ)
+   Log(2, "CompileLine()\n");
+   CommandP Cmd = CmdBuf;
+   if (!Cmd->Type)
       return; // empty line => done
-   if ((c->typ == SYMBOL) && !IgnoreUntilIF) { // symbol at the beginning, but not IF?
-      s = (SymbolP)c->val; // value = ptr to the symbol
-      if (s->defined) {
+   if ((Cmd->Type == SymL) && !PassOver) { // symbol at the beginning, but not IF?
+      SymbolP Sym = (SymbolP)Cmd->Value; // value = ptr to the symbol
+      if (Sym->Defined) {
          Error("symbol already defined");
          return;
       }
-      c++; // next command
-      if ((c->typ == OPCODE) && (c->val == ':'))
-         c++; // ignore a ":" after a symbol
-      if ((c->typ == OPCODE) && (c->val == 0x105)) { // EQU?
-         c++; // skip EQU
-         s->val = CalcTerm(c); // calculate the expression
-         if (LastRecalc)
+      Cmd++; // next command
+      if ((Cmd->Type == OpL) && (Cmd->Value == ':'))
+         Cmd++; // ignore a ":" after a symbol
+      if ((Cmd->Type == OpL) && (Cmd->Value == 0x105)) { // EQU?
+         Cmd++; // skip EQU
+         Sym->Value = GetExp(Cmd); // calculate the expression
+         if (LastPatch)
             Error("symbol not defined in a formula");
-         s->defined = true; // symbol now defined
-         if (c->typ != ILLEGAL) {
+         Sym->Defined = true; // symbol now defined
+         if (Cmd->Type != BadL) {
             Error("EQU is followed by illegal data");
             return;
          }
       } else {
-         s->val = PC; // adresse = current PC
-         s->defined = true; // symbol is defined
+         Sym->Value = CurPC; // adresse = current PC
+         Sym->Defined = true; // symbol is defined
       }
-      while (s->recalc) { // do expressions depend on the symbol?
-         RecalcListP r = s->recalc;
-         CommandP saveC;
-         int32_t value;
-         s->recalc = r->next; // to the next symbol
-         saveC = r->c;
-         value = CalcTerm(r->c); // Recalculate the symbol (now with the defined symbol)
-         if (!LastRecalc) { // Is the expression now valid? (or is there another open dependency?)
-            uint16_t adr = r->adr;
-            switch (r->typ) {
-               case 0x00: // add a single byte
-                  list("%04X <- %02X\n", adr, value);
-                  RAM[adr] = value;
+      while (Sym->Patch) { // do expressions depend on the symbol?
+         PatchListP Patch = Sym->Patch;
+         Sym->Patch = Patch->Next; // to the next symbol
+         CommandP Cmd0 = Patch->Cmd;
+         int32_t Value = GetExp(Patch->Cmd); // Recalculate the symbol (now with the defined symbol)
+         if (!LastPatch) { // Is the expression now valid? (or is there another open dependency?)
+            uint16_t Addr = Patch->Addr;
+            switch (Patch->Type) {
+               case 0: // add a single byte
+                  List("%04X <- %02X\n", Addr, Value);
+                  RAM[Addr] = Value;
                break;
-               case 0x01: // add two bytes
-                  list("%04X <- %02X %02X\n", adr, value&0xff, value >> 8);
-                  RAM[adr++] = value;
-                  RAM[adr] = value >> 8;
+               case 1: // add two bytes
+                  List("%04X <- %02X %02X\n", Addr, Value&0xff, Value >> 8);
+                  RAM[Addr++] = Value;
+                  RAM[Addr] = Value >> 8;
                break;
-               case 0x02: // PC-rel-byte
-                  value -= (adr + 1);
-                  list("%04X <- %02X\n", adr, value);
-                  RAM[adr] = value;
+               case 2: // PC-rel-byte
+                  Value -= (Addr + 1);
+                  List("%04X <- %02X\n", Addr, Value);
+                  RAM[Addr] = Value;
                break;
                default:
-                  Error("unknown recalc type");
+                  Error("unknown Patch type");
             }
          } else { // Expression still can't be calculated
-            LastRecalc->typ = r->typ; // transfer the type
-            LastRecalc->adr = r->adr; // transfer the address
+            LastPatch->Type = Patch->Type; // transfer the type
+            LastPatch->Addr = Patch->Addr; // transfer the address
          }
-         free(saveC); // release the formula
-         free(r); // release the Recalc term
+         free(Cmd0); // release the formula
+         free(Patch); // release the Patch term
       }
    }
-   if (IgnoreUntilIF) { // inside an IFs?
-      if (c->typ == OPCODE) {
-         switch (c->val) {
+   if (PassOver) { // inside an IFs?
+      if (Cmd->Type == OpL) {
+         switch (Cmd->Value) {
             case 0x108: // ENDIF reached?
-               IgnoreUntilIF = false; // start compiling
+               PassOver = false; // start compiling
             break;
             case 0x109: // ELSE reached?
-               IgnoreUntilIF = !IgnoreUntilIF; // toggle IF flag
+               PassOver = !PassOver; // toggle IF flag
             break;
          }
       }
    } else
-      while (c->typ) { // scan to the end of the line
-         val = c->val;
-         if ((val < 0x100) || (val > 0x2ff)) // no Opcode or Pseudo-Opcode?
+      while (Cmd->Type) { // scan to the end of the line
+         uint16_t Value = Cmd->Value;
+         if ((Value < 0x100) || (Value > 0x2ff)) // no Opcode or Pseudo-Opcode?
             Error("Illegal token"); // => error
-         if ((val >= 0x100) && (val <= 0x1ff)) // Pseudo-Opcode
-            DoPseudo(c);
+         if ((Value >= 0x100) && (Value <= 0x1ff)) // Pseudo-Opcode
+            DoPseudo(Cmd);
          else
-            DoOpcode(c); // opcode
+            DoOpcode(Cmd); // opcode
       }
 }

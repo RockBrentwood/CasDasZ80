@@ -1,5 +1,5 @@
 // HexIn.c: A simple library for reading the Intel HEX (IHEX) format.
-// See the header `Hex.h` for instructions.
+// See the header Hex.h for instructions.
 //
 // Copyright (c) 2013-2019 Kimmo Kulovesi, https://arkku.com/
 // Provided with absolutely no warranty, use at your own risk only.
@@ -7,159 +7,156 @@
 
 #include "HexIn.h"
 
-#define IHEX_START ':'
-#define ADDRESS_HIGH_MASK ((ihex_address_t)0xffff0000U)
+#define HexStart ':'
+#define InAddrHiMask ((HexAddressT)0xffff0000U)
 
-enum ihex_read_state {
-   READ_WAIT_FOR_START = 0,
-   READ_COUNT_HIGH = 1,
-   READ_COUNT_LOW,
-   READ_ADDRESS_MSB_HIGH,
-   READ_ADDRESS_MSB_LOW,
-   READ_ADDRESS_LSB_HIGH,
-   READ_ADDRESS_LSB_LOW,
-   READ_RECORD_TYPE_HIGH,
-   READ_RECORD_TYPE_LOW,
-   READ_DATA_HIGH,
-   READ_DATA_LOW
+enum HexInQ {
+   BegQ = 0,
+   InCount0Q = 1,
+   InCount1Q,
+   InAddr00Q,
+   InAddr01Q,
+   InAddr10Q,
+   InAddr11Q,
+   InType0Q,
+   InType1Q,
+   InData0Q,
+   InData1Q
 };
 
-#define IHEX_READ_RECORD_TYPE_MASK 0x07
-#define IHEX_READ_STATE_MASK 0x78
-#define IHEX_READ_STATE_OFFSET 3
+#define InTypeMask 0x07
+#define InMask 0x78
+#define InOffset 3
 
-void ihex_begin_read(struct ihex_state *const ihex) {
-   ihex->address = 0;
-#ifndef IHEX_DISABLE_SEGMENTS
-   ihex->segment = 0;
+void HexInBeg(struct HexQ *const Qh) {
+   Qh->Address = 0;
+#ifndef HexFlatAddresses
+   Qh->Segment = 0;
 #endif
-   ihex->flags = 0;
-   ihex->line_length = 0;
-   ihex->length = 0;
+   Qh->Flags = 0;
+   Qh->LineN = 0;
+   Qh->Length = 0;
 }
 
-void ihex_read_at_address(struct ihex_state *const ihex, ihex_address_t address) {
-   ihex_begin_read(ihex);
-   ihex->address = address;
+void HexGetAtAddr(struct HexQ *const Qh, HexAddressT Addr) {
+   HexInBeg(Qh);
+   Qh->Address = Addr;
 }
 
-#ifndef IHEX_DISABLE_SEGMENTS
-void ihex_read_at_segment(struct ihex_state *const ihex, ihex_segment_t segment) {
-   ihex_begin_read(ihex);
-   ihex->segment = segment;
+#ifndef HexFlatAddresses
+void HexGetAtSeg(struct HexQ *const Qh, HexSegmentT Seg) {
+   HexInBeg(Qh);
+   Qh->Segment = Seg;
 }
 #endif
 
-void ihex_end_read(struct ihex_state *const ihex) {
-   uint_fast8_t type = ihex->flags&IHEX_READ_RECORD_TYPE_MASK;
-   uint_fast8_t sum;
-   if ((sum = ihex->length) == 0 && type == IHEX_DATA_RECORD) {
+void HexInEnd(struct HexQ *const Qh) {
+   uint_fast8_t Type = Qh->Flags&InTypeMask;
+   uint_fast8_t Sum = Qh->Length;
+   if (Sum == 0 && Type == HexLineRec) {
       return;
    }
-{
 // compute and validate checksum
-   const uint8_t *const eptr = ihex->data + sum;
-   const uint8_t *r = ihex->data;
-   sum += type + (ihex->address&0xffU) + ((ihex->address >> 8)&0xffU);
-   while (r != eptr) {
-      sum += *r++;
+   const uint8_t *const EndP = Qh->Line + Sum;
+   Sum += Type + (Qh->Address&0xffU) + ((Qh->Address >> 8)&0xffU);
+   for (const uint8_t *LineP = Qh->Line; LineP != EndP; ) {
+      Sum += *LineP++;
    }
-   sum = (~sum + 1U) ^ *eptr; // *eptr is the received checksum
-}
-   if (ihex_data_read(ihex, type, (uint8_t)sum)) {
-      if (type == IHEX_EXTENDED_LINEAR_ADDRESS_RECORD) {
-         ihex->address &= 0xffffU;
-         ihex->address |= (((ihex_address_t)ihex->data[0]) << 24) | (((ihex_address_t)ihex->data[1]) << 16);
-#ifndef IHEX_DISABLE_SEGMENTS
-      } else if (type == IHEX_EXTENDED_SEGMENT_ADDRESS_RECORD) {
-         ihex->segment = (ihex_segment_t)((ihex->data[0] << 8) | ihex->data[1]);
+   Sum = (~Sum + 1U) ^ *EndP; // *EndP is the received checksum
+   if (HexGetData(Qh, Type, (uint8_t)Sum)) {
+      if (Type == HexAddrRec) {
+         Qh->Address &= 0xffffU;
+         Qh->Address |= (((HexAddressT)Qh->Line[0]) << 24) | (((HexAddressT)Qh->Line[1]) << 16);
+#ifndef HexFlatAddresses
+      } else if (Type == HexSegRec) {
+         Qh->Segment = (HexSegmentT)((Qh->Line[0] << 8) | Qh->Line[1]);
 #endif
       }
    }
-   ihex->length = 0;
-   ihex->flags = 0;
+   Qh->Length = 0;
+   Qh->Flags = 0;
 }
 
-void ihex_read_byte(struct ihex_state *const ihex, const char byte) {
-   uint_fast8_t b = (uint_fast8_t)byte;
-   uint_fast8_t len = ihex->length;
-   uint_fast8_t state = (ihex->flags&IHEX_READ_STATE_MASK);
-   ihex->flags ^= state; // turn off the old state
-   state >>= IHEX_READ_STATE_OFFSET;
-   if (b >= '0' && b <= '9') {
-      b -= '0';
-   } else if (b >= 'A' && b <= 'F') {
-      b -= 'A' - 10;
-   } else if (b >= 'a' && b <= 'f') {
-      b -= 'a' - 10;
-   } else if (b == IHEX_START) {
+void HexGet1(struct HexQ *const Qh, const char Ch) {
+   uint_fast8_t B = (uint_fast8_t)Ch;
+   uint_fast8_t LineN = Qh->Length;
+   uint_fast8_t InQ = (Qh->Flags&InMask);
+   Qh->Flags ^= InQ; // turn off the old state
+   InQ >>= InOffset;
+   if (B >= '0' && B <= '9') {
+      B -= '0';
+   } else if (B >= 'A' && B <= 'F') {
+      B -= 'A' - 10;
+   } else if (B >= 'a' && B <= 'f') {
+      B -= 'a' - 10;
+   } else if (B == HexStart) {
    // sync to a new record at any state
-      state = READ_COUNT_HIGH;
-      goto end_read;
+      InQ = InCount0Q;
+      goto EndIn;
    } else {
    // ignore unknown characters (e.g., extra whitespace)
-      goto save_read_state;
+      goto SaveInQ;
    }
-   if (!(++state&1)) {
+   if (!(++InQ&1)) {
    // high nybble, store temporarily at end of data:
-      b <<= 4;
-      ihex->data[len] = b;
+      B <<= 4;
+      Qh->Line[LineN] = B;
    } else {
    // low nybble, combine with stored high nybble:
-      b = (ihex->data[len] |= b);
-   // We already know the lowest bit of `state`, dropping it may produce
+      B = (Qh->Line[LineN] |= B);
+   // We already know the lowest bit of InQ, dropping it may produce
    // smaller code, hence the `>> 1` in switch and its cases.
-      switch (state >> 1) {
+      switch (InQ >> 1) {
          default:
          // remain in initial state while waiting for :
             return;
-         case READ_COUNT_LOW >> 1:
+         case InCount1Q >> 1:
          // data length
-            ihex->line_length = b;
-#if IHEX_LINE_MAX_LENGTH < 255
-            if (b > IHEX_LINE_MAX_LENGTH) {
-               ihex_end_read(ihex);
+            Qh->LineN = B;
+#if HexLineMax < 0xff
+            if (B > HexLineMax) {
+               HexInEnd(Qh);
                return;
             }
 #endif
          break;
-         case READ_ADDRESS_MSB_LOW >> 1:
+         case InAddr01Q >> 1:
          // high byte of 16-bit address
-            ihex->address &= ADDRESS_HIGH_MASK; // clear the 16-bit address
-            ihex->address |= ((ihex_address_t)b) << 8U;
+            Qh->Address &= InAddrHiMask; // clear the 16-bit address
+            Qh->Address |= ((HexAddressT)B) << 8U;
          break;
-         case READ_ADDRESS_LSB_LOW >> 1:
+         case InAddr11Q >> 1:
          // low byte of 16-bit address
-            ihex->address |= (ihex_address_t)b;
+            Qh->Address |= (HexAddressT)B;
          break;
-         case READ_RECORD_TYPE_LOW >> 1:
+         case InType1Q >> 1:
          // record type
-            if (b&~IHEX_READ_RECORD_TYPE_MASK) {
+            if (B&~InTypeMask) {
             // skip unknown record types silently
                return;
             }
-            ihex->flags = (ihex->flags&~IHEX_READ_RECORD_TYPE_MASK) | b;
+            Qh->Flags = (Qh->Flags&~InTypeMask) | B;
          break;
-         case READ_DATA_LOW >> 1:
-            if (len < ihex->line_length) {
+         case InData1Q >> 1:
+            if (LineN < Qh->LineN) {
             // data byte
-               ihex->length = len + 1;
-               state = READ_DATA_HIGH;
-               goto save_read_state;
+               Qh->Length = LineN + 1;
+               InQ = InData0Q;
+               goto SaveInQ;
             }
-         // end of line (last "data" byte is checksum)
-            state = READ_WAIT_FOR_START;
-         end_read:
-            ihex_end_read(ihex);
+         // end of line (last "Line" byte is checksum)
+            InQ = BegQ;
+         EndIn:
+            HexInEnd(Qh);
       }
    }
-save_read_state:
-   ihex->flags |= state << IHEX_READ_STATE_OFFSET;
+SaveInQ:
+   Qh->Flags |= InQ << InOffset;
 }
 
-void ihex_read_bytes(struct ihex_state *restrict ihex, const char *restrict data, ihex_count_t count) {
-   while (count > 0) {
-      ihex_read_byte(ihex, *data++);
-      --count;
+void HexGet(struct HexQ *restrict Qh, const char *restrict InBuf, HexInt InN) {
+   while (InN > 0) {
+      HexGet1(Qh, *InBuf++);
+      --InN;
    }
 }

@@ -1,5 +1,5 @@
 // HexEx.c: A simple library for writing the Intel HEX (IHEX) format.
-// See the header `Hex.h` for instructions.
+// See the header Hex.h for instructions.
 //
 // Copyright (c) 2013-2019 Kimmo Kulovesi, https://arkku.com/
 // Provided with absolutely no warranty, use at your own risk only.
@@ -7,203 +7,199 @@
 
 #include "HexEx.h"
 
-#define IHEX_START ':'
-#define ADDRESS_HIGH_MASK ((ihex_address_t)0xffff0000U)
-#define ADDRESS_HIGH_BYTES(addr) ((addr) >> 16)
-#define HEX_DIGIT(n) ((char)((n) + (((n) < 10)? '0': ('A' - 10))))
+#define HexStart ':'
+#define AddrPageMask ((HexAddressT)0xffff0000U)
+#define AddrPage(Addr) ((Addr) >> 16)
+#define Hexit(N) ((char)((N) + (((N) < 10)? '0': ('A' - 10))))
 
-#ifndef IHEX_EXTERNAL_WRITE_BUFFER
-static char ihex_write_buffer[IHEX_WRITE_BUFFER_LENGTH];
+#ifndef HexNoExBuf
+static char HexExBuf[HexExMax];
 #endif
-#if IHEX_MAX_OUTPUT_LINE_LENGTH > IHEX_LINE_MAX_LENGTH
-#   error "IHEX_MAX_OUTPUT_LINE_LENGTH > IHEX_LINE_MAX_LENGTH"
+#if HexExLineMax > HexLineMax
+#   error "HexExLineMax > HexLineMax"
 #endif
 
-void ihex_init(struct ihex_state *const ihex) {
-   ihex->address = 0;
-#ifndef IHEX_DISABLE_SEGMENTS
-   ihex->segment = 0;
+void HexExBeg(struct HexQ *const Qh) {
+   Qh->Address = 0;
+#ifndef HexFlatAddresses
+   Qh->Segment = 0;
 #endif
-   ihex->flags = 0;
-   ihex->line_length = IHEX_DEFAULT_OUTPUT_LINE_LENGTH;
-   ihex->length = 0;
+   Qh->Flags = 0;
+   Qh->LineN = HexExLineN;
+   Qh->Length = 0;
 }
 
-static char *ihex_buffer_byte(char *restrict w, const uint8_t byte) {
-   uint8_t n = (byte&0xf0U) >> 4; // high nybble
-   *w++ = HEX_DIGIT(n);
-   n = byte&0x0fU; // low nybble
-   *w++ = HEX_DIGIT(n);
-   return w;
+static char *AddByte(char *restrict HexP, const uint8_t Byte) {
+   uint8_t N = (Byte&0xf0U) >> 4; // high nybble
+   *HexP++ = Hexit(N);
+   N = Byte&0x0fU; // low nybble
+   *HexP++ = Hexit(N);
+   return HexP;
 }
 
-static char *ihex_buffer_word(char *restrict w, const uint_fast16_t word, uint8_t *const restrict checksum) {
-   uint8_t byte = (word >> 8)&0xffU; // high byte
-   w = ihex_buffer_byte(w, (uint8_t)byte);
-   *checksum += byte;
-   byte = word&0xffU; // low byte
-   *checksum += byte;
-   return ihex_buffer_byte(w, (uint8_t)byte);
+static char *AddWord(char *restrict HexP, const uint_fast16_t Word, uint8_t *const restrict SumP) {
+   uint8_t Byte = (Word >> 8)&0xffU; // high byte
+   HexP = AddByte(HexP, (uint8_t)Byte);
+   *SumP += Byte;
+   Byte = Word&0xffU; // low byte
+   *SumP += Byte;
+   return AddByte(HexP, (uint8_t)Byte);
 }
 
-static char *ihex_buffer_newline(char *restrict w) {
-   const char *restrict r = IHEX_NEWLINE_STRING;
+static char *AddNL(char *restrict HexP) {
+   const char *restrict NL = HexNL;
    do {
-      *w++ = *r++;
-   } while (*r);
-   return w;
+      *HexP++ = *NL++;
+   } while (*NL);
+   return HexP;
 }
 
-static void ihex_write_end_of_file(struct ihex_state *const ihex) {
-   char *restrict w = ihex_write_buffer;
-   *w++ = IHEX_START; // :
+static void PutEOF(struct HexQ *const Qh) {
+   char *restrict HexP = HexExBuf;
+   *HexP++ = HexStart; // :
 #if 1
-   *w++ = '0';
-   *w++ = '0'; // length
-   *w++ = '0';
-   *w++ = '0';
-   *w++ = '0';
-   *w++ = '0'; // address
-   *w++ = '0';
-   *w++ = '1'; // record type
-   *w++ = 'F';
-   *w++ = 'F'; // checksum
+   *HexP++ = '0';
+   *HexP++ = '0'; // length
+   *HexP++ = '0';
+   *HexP++ = '0';
+   *HexP++ = '0';
+   *HexP++ = '0'; // address
+   *HexP++ = '0';
+   *HexP++ = '1'; // record type
+   *HexP++ = 'F';
+   *HexP++ = 'F'; // checksum
 #else
-   w = ihex_buffer_byte(w, 0); // length
-   w = ihex_buffer_byte(w, 0); // address msb
-   w = ihex_buffer_byte(w, 0); // address lsb
-   w = ihex_buffer_byte(w, IHEX_END_OF_FILE_RECORD); // record type
-   w = ihex_buffer_byte(w, (uint8_t)~IHEX_END_OF_FILE_RECORD + 1U); // checksum
+   HexP = AddByte(HexP, 0); // length
+   HexP = AddByte(HexP, 0); // address msb
+   HexP = AddByte(HexP, 0); // address lsb
+   HexP = AddByte(HexP, HexEndRec); // record type
+   HexP = AddByte(HexP, (uint8_t)~HexEndRec + 1U); // checksum
 #endif
-   w = ihex_buffer_newline(w);
-   ihex_flush_buffer(ihex, ihex_write_buffer, w);
+   HexP = AddNL(HexP);
+   HexExFlush(Qh, HexExBuf, HexP);
 }
 
-static void ihex_write_extended_address(struct ihex_state *const ihex, const ihex_segment_t address, const uint8_t type) {
-   char *restrict w = ihex_write_buffer;
-   uint8_t sum = type + 2U;
-   *w++ = IHEX_START; // :
-   w = ihex_buffer_byte(w, 2U); // length
-   w = ihex_buffer_byte(w, 0); // 16-bit address msb
-   w = ihex_buffer_byte(w, 0); // 16-bit address lsb
-   w = ihex_buffer_byte(w, type); // record type
-   w = ihex_buffer_word(w, address, &sum); // high bytes of address
-   w = ihex_buffer_byte(w, (uint8_t)~sum + 1U); // checksum
-   w = ihex_buffer_newline(w);
-   ihex_flush_buffer(ihex, ihex_write_buffer, w);
+static void PutSegment(struct HexQ *const Qh, const HexSegmentT Seg, const uint8_t Type) {
+   char *restrict HexP = HexExBuf;
+   uint8_t Sum = Type + 2U;
+   *HexP++ = HexStart; // :
+   HexP = AddByte(HexP, 2U); // length
+   HexP = AddByte(HexP, 0); // 16-bit address msb
+   HexP = AddByte(HexP, 0); // 16-bit address lsb
+   HexP = AddByte(HexP, Type); // record type
+   HexP = AddWord(HexP, Seg, &Sum); // high bytes of address
+   HexP = AddByte(HexP, (uint8_t)~Sum + 1U); // checksum
+   HexP = AddNL(HexP);
+   HexExFlush(Qh, HexExBuf, HexP);
 }
 
-// Write out `ihex->data`
-static void ihex_write_data(struct ihex_state *const ihex) {
-   uint_fast8_t len = ihex->length;
-   uint8_t sum = len;
-   char *restrict w = ihex_write_buffer;
-   if (!len) {
+// Write out Qh->Line
+static void PutHexLine(struct HexQ *const Qh) {
+   uint_fast8_t Len = Qh->Length;
+   if (!Len) {
       return;
    }
-   if (ihex->flags&IHEX_FLAG_ADDRESS_OVERFLOW) {
-      ihex_write_extended_address(ihex, ADDRESS_HIGH_BYTES(ihex->address), IHEX_EXTENDED_LINEAR_ADDRESS_RECORD);
-      ihex->flags &= ~IHEX_FLAG_ADDRESS_OVERFLOW;
+   if (Qh->Flags&HexAddrOverflowFlag) {
+      PutSegment(Qh, AddrPage(Qh->Address), HexAddrRec);
+      Qh->Flags &= ~HexAddrOverflowFlag;
    }
+   char *restrict HexP = HexExBuf;
 // :
-   *w++ = IHEX_START;
+   *HexP++ = HexStart;
 // length
-   w = ihex_buffer_byte(w, len);
-   ihex->length = 0;
+   HexP = AddByte(HexP, Len);
+   uint8_t Sum = Len;
+   Qh->Length = 0;
 // 16-bit address
-{
-   uint_fast16_t addr = ihex->address&0xffffU;
-   ihex->address += len;
-   if ((0xffffU - addr) < len) {
+   uint_fast16_t Addr = Qh->Address&0xffffU;
+   Qh->Address += Len;
+   if ((0xffffU - Addr) < Len) {
    // signal address overflow (need to write extended address)
-      ihex->flags |= IHEX_FLAG_ADDRESS_OVERFLOW;
+      Qh->Flags |= HexAddrOverflowFlag;
    }
-   w = ihex_buffer_word(w, addr, &sum);
-}
+   HexP = AddWord(HexP, Addr, &Sum);
 // record type
-   w = ihex_buffer_byte(w, IHEX_DATA_RECORD);
+   HexP = AddByte(HexP, HexLineRec);
 #if 0
-   sum += IHEX_DATA_RECORD; // IHEX_DATA_RECORD is zero, so NOP
+   Sum += HexLineRec; // HexLineRec is zero, so NOP
 #endif
 // data
-{
-   uint8_t *restrict r = ihex->data;
+   uint8_t *restrict LineP = Qh->Line;
    do {
-      uint8_t byte = *r++;
-      sum += byte;
-      w = ihex_buffer_byte(w, byte);
-   } while (--len);
-}
+      uint8_t Byte = *LineP++;
+      Sum += Byte;
+      HexP = AddByte(HexP, Byte);
+   } while (--Len);
 // checksum
-   w = ihex_buffer_byte(w, ~sum + 1U);
-   w = ihex_buffer_newline(w);
-   ihex_flush_buffer(ihex, ihex_write_buffer, w);
+   HexP = AddByte(HexP, ~Sum + 1U);
+   HexP = AddNL(HexP);
+   HexExFlush(Qh, HexExBuf, HexP);
 }
 
-void ihex_write_at_address(struct ihex_state *const ihex, ihex_address_t address) {
-   if (ihex->length) {
+void HexPutAtAddr(struct HexQ *const Qh, HexAddressT Addr) {
+   if (Qh->Length) {
    // flush any existing data
-      ihex_write_data(ihex);
+      PutHexLine(Qh);
    }
-   const ihex_address_t page = address&ADDRESS_HIGH_MASK;
-   if ((ihex->address&ADDRESS_HIGH_MASK) != page) {
+   const HexAddressT Page = Addr&AddrPageMask;
+   if ((Qh->Address&AddrPageMask) != Page) {
    // write a new extended address if needed
-      ihex->flags |= IHEX_FLAG_ADDRESS_OVERFLOW;
-   } else if (ihex->address != page) {
-      ihex->flags &= ~IHEX_FLAG_ADDRESS_OVERFLOW;
+      Qh->Flags |= HexAddrOverflowFlag;
+   } else if (Qh->Address != Page) {
+      Qh->Flags &= ~HexAddrOverflowFlag;
    }
-   ihex->address = address;
-   ihex_set_output_line_length(ihex, ihex->line_length);
+   Qh->Address = Addr;
+   HexSetLineN(Qh, Qh->LineN);
 }
 
-void ihex_set_output_line_length(struct ihex_state *const ihex, uint8_t line_length) {
-#if IHEX_MAX_OUTPUT_LINE_LENGTH < 255
-   if (line_length > IHEX_MAX_OUTPUT_LINE_LENGTH) {
-      line_length = IHEX_MAX_OUTPUT_LINE_LENGTH;
+void HexSetLineN(struct HexQ *const Qh, uint8_t LineN) {
+#if HexExLineMax < 0xff
+   if (LineN > HexExLineMax) {
+      LineN = HexExLineMax;
    } else
 #endif
-   if (!line_length) {
-      line_length = IHEX_DEFAULT_OUTPUT_LINE_LENGTH;
+   if (!LineN) {
+      LineN = HexExLineN;
    }
-   ihex->line_length = line_length;
+   Qh->LineN = LineN;
 }
 
-#ifndef IHEX_DISABLE_SEGMENTS
-void ihex_write_at_segment(struct ihex_state *const ihex, ihex_segment_t segment, ihex_address_t address) {
-   ihex_write_at_address(ihex, address);
-   if (ihex->segment != segment) {
+#ifndef HexFlatAddresses
+void HexPutAtSeg(struct HexQ *const Qh, HexSegmentT Seg, HexAddressT Addr) {
+   HexPutAtAddr(Qh, Addr);
+   if (Qh->Segment != Seg) {
    // clear segment
-      ihex_write_extended_address(ihex, (ihex->segment = segment), IHEX_EXTENDED_SEGMENT_ADDRESS_RECORD);
+      PutSegment(Qh, (Qh->Segment = Seg), HexSegRec);
    }
 }
 #endif
 
-void ihex_write_byte(struct ihex_state *const ihex, const int byte) {
-   if (ihex->line_length <= ihex->length) {
-      ihex_write_data(ihex);
+void HexPut1(struct HexQ *const Qh, const int Ch) {
+   if (Qh->LineN <= Qh->Length) {
+      PutHexLine(Qh);
    }
-   ihex->data[(ihex->length)++] = (uint8_t)byte;
+   Qh->Line[(Qh->Length)++] = (uint8_t)Ch;
 }
 
-void ihex_write_bytes(struct ihex_state *restrict const ihex, const void *restrict buf, ihex_count_t count) {
-   const uint8_t *r = buf;
-   while (count > 0) {
-      if (ihex->line_length > ihex->length) {
-         uint_fast8_t i = ihex->line_length - ihex->length;
-         uint8_t *w = ihex->data + ihex->length;
-         i = ((ihex_count_t)i > count)? (uint_fast8_t)count: i;
-         count -= i;
-         ihex->length += i;
+void HexPut(struct HexQ *restrict const Qh, const void *restrict ExBuf, HexInt ExN) {
+   const uint8_t *ExP = ExBuf;
+   while (ExN > 0) {
+      if (Qh->LineN > Qh->Length) {
+         uint_fast8_t dN = Qh->LineN - Qh->Length;
+         uint8_t *HexP = Qh->Line + Qh->Length;
+         dN = ((HexInt)dN > ExN)? (uint_fast8_t)ExN: dN;
+         ExN -= dN;
+         Qh->Length += dN;
          do {
-            *w++ = *r++;
-         } while (--i);
+            *HexP++ = *ExP++;
+         } while (--dN);
       } else {
-         ihex_write_data(ihex);
+         PutHexLine(Qh);
       }
    }
 }
 
-void ihex_end_write(struct ihex_state *const ihex) {
-   ihex_write_data(ihex); // flush any remaining data
-   ihex_write_end_of_file(ihex);
+void HexExEnd(struct HexQ *const Qh) {
+   PutHexLine(Qh); // flush any remaining data
+   PutEOF(Qh);
 }

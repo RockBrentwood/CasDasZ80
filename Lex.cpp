@@ -7,38 +7,38 @@
 
 // clang-format off
 struct ShortSym {
-   int16_t id; // ID for the symbol
-   const char *s; // string
-   uint16_t p; // additional parameter
+   int16_t Id; // ID for the symbol
+   const char *S; // string
+   uint16_t Par; // additional parameter
 };
 
 static const ShortSym Pseudo[] = {
-   { DEFB, "DEFB", 0x0000 }, { DEFB, "DB", 0x0000 },
-   { DEFM, "DEFM", 0x0000 }, { DEFM, "DM", 0x0000 },
-   { DEFS, "DEFS", 0x0000 }, { DEFS, "DS", 0x0000 },
-   { DEFW, "DEFW", 0x0000 }, { DEFW, "DW", 0x0000 },
-   { ELSE, "ELSE", 0x0000 }, { END, "END", 0x0000 },
-   { ENDIF, "ENDIF", 0x0000 }, { EQU, "EQU", 0x0000 }, { IF, "IF", 0x0000 },
-   { ORG, "ORG", 0x0000 }, { PRINT, "PRINT", 0x0000 }
+   { _db, "DEFB", 0x0000 }, { _db, "DB", 0x0000 },
+   { _dm, "DEFM", 0x0000 }, { _dm, "DM", 0x0000 },
+   { _ds, "DEFS", 0x0000 }, { _ds, "DS", 0x0000 },
+   { _dw, "DEFW", 0x0000 }, { _dw, "DW", 0x0000 },
+   { _else, "ELSE", 0x0000 }, { _end, "END", 0x0000 },
+   { _endif, "ENDIF", 0x0000 }, { _equ, "EQU", 0x0000 }, { _if, "IF", 0x0000 },
+   { _org, "ORG", 0x0000 }, { _print, "PRINT", 0x0000 }
 };
 
-// type: (+ 0x200)
-// 0x00 : IN,OUT
-// 0x01 : 1 byte opcode, no parameter
-// 0x02 : 2 byte opcode, no parameter
-// 0x03 : 2 byte opcode, (HL) required
-// 0x04 : 1.parameter = bit number, 2.parameter = <ea> (BIT,RES,SET)
-// 0x05 : IM (one parameter: 0,1,2)
-// 0x06 : ADD,ADC,SUB,SBC,AND,XOR,OR,CP
-// 0x07 : INC, DEC, like 0x06 with absolute address
-// 0x08 : JP, CALL, JR (Warning! Different <ea>!)
-// 0x09 : RET (c or nothing)
-// 0x0a : RST (00,08,10,18,20,28,30,38)
-// 0x0b : DJNZ
-// 0x0c : EX: (SP),dreg or DE,HL or AF,AF'
-// 0x0d : LD
-// 0x0e : PUSH, POP: dreg
-// 0x0f : RR,RL,RRC,RLC,SRA,SLA,SRL
+// Type:
+// 0x200 : IN,OUT
+// 0x201 : 1 byte opcode, no parameter
+// 0x202 : 2 byte opcode, no parameter
+// 0x203 : 2 byte opcode, (HL) required
+// 0x204 : 1.parameter = bit number, 2.parameter = <ea> (BIT,RES,SET)
+// 0x205 : IM (one parameter: 0,1,2)
+// 0x206 : ADD,ADC,SUB,SBC,AND,XOR,OR,CP
+// 0x207 : INC, DEC, like 0x206 with absolute address
+// 0x208 : JP, CALL, JR (Warning! Different <ea>!)
+// 0x209 : RET (c or nothing)
+// 0x20a : RST (00,08,10,18,20,28,30,38)
+// 0x20b : DJNZ
+// 0x20c : EX: (SP),dreg or DE,HL or AF,AF'
+// 0x20d : LD
+// 0x20e : PUSH, POP: dreg
+// 0x20f : RR,RL,RRC,RLC,SRA,SLA,SRL
 static const ShortSym Opcodes[] = {
    { 0x206, "ADC", 0x88ce }, { 0x206, "ADD", 0x80c6 }, { 0x206, "AND", 0xa0e6 },
    { 0x204, "BIT", 0xcb40 }, { 0x208, "CALL", 0xc4cd }, { 0x201, "CCF", 0x3f00 },
@@ -89,8 +89,8 @@ static const ShortSym Conditions[] = {
 };
 
 struct TokenTable {
-   const ShortSym *table; // ptr to an opcode list
-   int16_t tablesize; // length of the table in bytes
+   const ShortSym *Table; // ptr to an opcode list
+   int16_t TableN; // length of the table in bytes
 };
 
 static const TokenTable Token[] = {
@@ -102,248 +102,235 @@ static const TokenTable Token[] = {
 };
 // clang-format on
 
-Command Cmd[80]; // a tokenized line
-SymbolP SymTab[256]; // symbol table (split by the upper hash byte)
+Command CmdBuf[80]; // a tokenized line
+SymbolP SymTab[0x100]; // symbol table (split by the upper hash byte)
 
 // calculate a simple hash for a string
-static uint16_t CalcHash(const char *name) {
-   uint16_t hash_val = 0;
-   uint16_t i;
-   uint8_t c;
-   while ((c = *name++) != 0) {
+static uint16_t CalcHash(const char *Name) {
+   uint16_t Hash = 0;
+   for (uint8_t Ch; (Ch = *Name++) != 0; ) {
 #if 0
-      hash_val += c;
+      Hash += Ch;
 #else
-      hash_val = (hash_val << 4) + c;
-      if ((i = (hash_val >> 12)) != 0)
-         hash_val ^= i;
+      Hash = (Hash << 4) + Ch;
+      uint16_t H = (Hash >> 12);
+      if (H != 0)
+         Hash ^= H;
 #endif
    }
-   return hash_val;
+   return Hash;
 }
 
 // search for a symbol, generate one if it didn't already exist.
-static SymbolP FindSymbol(const char *name) {
-   uint16_t hash = CalcHash(name); // hash value for the name
-   uint8_t hashb = hash;
-   SymbolP s;
-   s = SymTab[hashb]; // ptr to the first symbol
-   while (s) {
-      if (s->hash == hash) // search for a matching hash
-         if (!strcmp(s->name, name))
-            return s; // found the symbol?
-      s = s->next; // to the next symbol
+static SymbolP FindSymbol(const char *Name) {
+   uint16_t Hash = CalcHash(Name); // hash value for the name
+   uint8_t HashB = Hash;
+   for (SymbolP Sym = SymTab[HashB]; Sym; Sym = Sym->Next) { // For each symbol
+      if (Sym->Hash == Hash) // search for a matching hash
+         if (!strcmp(Sym->Name, Name))
+            return Sym; // found the symbol?
    }
-   s = (SymbolP)malloc(sizeof(Symbol)); // allocate memory for a symbol
-   if (!s)
+   SymbolP Sym = (SymbolP)malloc(sizeof(Symbol)); // allocate memory for a symbol
+   if (!Sym)
       return nullptr; // not enough memory
-   memset(s, 0, sizeof(Symbol));
-   s->next = SymTab[hashb];
-   SymTab[hashb] = s; // link the symbol into the list
-   s->hash = hash;
-   strcpy(s->name, name); // and copy the name
-   return s;
+   memset(Sym, 0, sizeof(Symbol));
+   Sym->Next = SymTab[HashB];
+   SymTab[HashB] = Sym; // link the symbol into the list
+   Sym->Hash = Hash;
+   strcpy(Sym->Name, Name); // and copy the name
+   return Sym;
 }
 
 // initialize the symbol table
 void InitSymTab(void) {
-   int16_t i;
-   SymbolP s;
-   const TokenTable *t;
-   for (i = 0; i < 256; i++)
-      SymTab[i] = nullptr; // reset all entries
-   for (t = Token; t->table; t++) { // check all token tables
-      for (i = 0; i < t->tablesize; i++) { // and all tokens for a single table
-         s = FindSymbol(t->table[i].s); // add all opcodes to the symbol table
-         s->type = t->table[i].id; // ID (<> 0!)
-         s->val = ((int32_t)t->table[i].p << 16) | s->type; // merge parameter and id
+   for (int16_t S = 0; S < 0x100; S++)
+      SymTab[S] = nullptr; // reset all entries
+   for (const TokenTable *T = Token; T->Table; T++) { // check all token tables
+      for (int16_t n = 0; n < T->TableN; n++) { // and all tokens for a single table
+         SymbolP Sym = FindSymbol(T->Table[n].S); // add all opcodes to the symbol table
+         Sym->Type = T->Table[n].Id; // ID (<> 0!)
+         Sym->Value = ((int32_t)T->Table[n].Par << 16) | Sym->Type; // merge parameter and id
       }
    }
 }
 
 // Is this an alphanumeric character _or_ an unterline, which is a valid symbol
-static int isalnum_(char c) {
-   return isalnum(c) || c == '_';
+static int IsAlNum(char Ch) {
+   return isalnum(Ch) || Ch == '_';
 }
 
 // tokenize a single line
-void TokenizeLine(char *sp) {
-   char *tp, *sp2;
-   char c;
-   char stemp[MAXLINELENGTH];
-   char maxc;
-   int16_t base; // binary, decimal or hex
-   bool dollar; // token starts with $
-   bool dot;
-   Type typ;
-   long val;
-   char AktUpLine[MAXLINELENGTH];
-   char *AktLine = sp; // remember the beginning of the line
-   CommandP cp = Cmd; // ptr to the command buffer
-   sp2 = AktUpLine;
-   while ((*sp2++ = toupper(*sp++))); // convert to capital letters
-   sp = AktUpLine;
+void TokenizeLine(char *Line) {
+   char *BegLine = Line; // remember the beginning of the line
+   CommandP Cmd = CmdBuf; // ptr to the command buffer
+   char UpLine[LineMax];
+   for (char *LP = UpLine; (*LP++ = toupper(*Line++)); ); // convert to capital letters
+   Line = UpLine;
    while (1) { // parse the whole string
-      while ((isspace(c = *sp++))); // ignore spaces
-      if (c == ';')
+      char Ch;
+      while ((isspace(Ch = *Line++))); // ignore spaces
+      if (Ch == ';')
          break; // a comment => ignore the rest of the line
-      if (c == 0)
+      if (Ch == 0)
          break; // end of line => done
-      tp = sp - 1; // pointer to current token
-      typ = ILLEGAL; // default: an illegal type
-      base = 0;
-      dot = false; // pseudo opcodes can start with '.'
-      dollar = false; // $ = PC
-      if (c == '.') {
-         c = *sp++;
-         dot = true;
-      } else if (c == '$') { // PC or the beginning of a hex number
-         if (isalnum(*sp) && *sp <= 'F') {
-            base = 16;
-            c = *sp++;
+      char *LP = Line - 1; // pointer to current token
+      Lexical Type = BadL; // default: an illegal type
+      int16_t Base = 0; // binary, decimal or hex
+      bool Dot = false; // pseudo opcodes can start with '.'
+      bool Dollar = false; // token starts with $ = PC
+      if (Ch == '.') {
+         Ch = *Line++;
+         Dot = true;
+      } else if (Ch == '$') { // PC or the beginning of a hex number
+         if (isalnum(*Line) && *Line <= 'F') {
+            Base = 0x10;
+            Ch = *Line++;
          } else
-            dollar = true;
-      } else if (!strncmp(tp, "0X", 2) && isxdigit(tp[2])) {
-         sp++; // skip 'X'
-         c = *sp++; // 1st hex digit
-         base = 16;
+            Dollar = true;
+      } else if (!strncmp(LP, "0X", 2) && isxdigit(LP[2])) {
+         Line++; // skip 'X'
+         Ch = *Line++; // 1st hex digit
+         Base = 0x10;
       }
-      if (dollar) {
-         typ = NUM;
-         val = PC;
-      } else if (isalnum_(c)) { // A…Z, a…z, 0-9
-         sp2 = stemp; // ptr to the beginning
-         maxc = 0; // highest ASCII character
+      long Value;
+      if (Dollar) {
+         Type = NumL;
+         Value = CurPC;
+      } else if (IsAlNum(Ch)) { // A…Z, a…z, 0⋯9, _
+         char NumBuf[LineMax];
+         char *NP = NumBuf; // ptr to the beginning
+         char MaxCh = 0; // highest ASCII character
          do {
-            *sp2++ = c;
-            if (isalnum_(*sp)) { // not the last character?
-               if (c > maxc)
-                  maxc = c; // remember the highest ASCII character
+            *NP++ = Ch;
+            if (IsAlNum(*Line)) { // not the last character?
+               if (Ch > MaxCh)
+                  MaxCh = Ch; // remember the highest ASCII character
             } else { // last character
-               if (base == 16) {
-                  base = (maxc <= 'F' && c <= 'F')? 16: 0; // invalid hex digits?
-               } else if (stemp + 1 != sp2) { // at least one character
-                  if (isdigit(tp[0]) && c == 'H' && maxc <= 'F')
-                     base = 16; // starts with digit and ends with 'H': hex number
-                  else if (c == 'D' && maxc <= '9')
-                     base = 10; // 'D' after a number: decimal number
-                  else if (c == 'B' && maxc <= '1')
-                     base = 2; // 'B' after a number: binary number
-                  if (base > 0)
-                     --sp2;
+               if (Base == 0x10) {
+                  Base = (MaxCh <= 'F' && Ch <= 'F')? 0x10: 0; // invalid hex digits?
+               } else if (NumBuf + 1 != NP) { // at least one character
+                  if (isdigit(LP[0]) && Ch == 'H' && MaxCh <= 'F')
+                     Base = 0x10; // starts with digit and ends with 'H': hex number
+                  else if (Ch == 'D' && MaxCh <= '9')
+                     Base = 10; // 'D' after a number: decimal number
+                  else if (Ch == 'B' && MaxCh <= '1')
+                     Base = 2; // 'B' after a number: binary number
+                  if (Base > 0)
+                     --NP;
                }
-               if (!base && c >= '0' && c <= '9' && maxc <= '9')
-                  base = 10;
+               if (!Base && Ch >= '0' && Ch <= '9' && MaxCh <= '9')
+                  Base = 10;
             }
-            c = *sp++; // get the next character
-         } while (isalnum_(c));
-         sp--;
-         *sp2 = 0;
-         if (base > 0) { // a valid number?
-            sp2 = stemp;
-            val = 0;
-            while ((c = *sp2++) != 0) { // read the value
-               val *= base; // multiply with the number base
-               val += (c <= '9')? c - '0': c - 'A' + 10;
+            Ch = *Line++; // get the next character
+         } while (IsAlNum(Ch));
+         Line--;
+         *NP = 0;
+         if (Base > 0) { // a valid number?
+            NP = NumBuf;
+            Value = 0;
+            while ((Ch = *NP++) != 0) { // read the value
+               Value *= Base; // multiply with the number base
+               Value += (Ch <= '9')? Ch - '0': Ch - 'A' + 10;
             }
-            typ = NUM; // type: a number
+            Type = NumL; // Type: a number
          } else {
          // first character not a digit or token doesn't start with "$" or "0X"?
-            if (*stemp >= 'A' && tp[0] != '$' && strncmp(tp, "0X", 2)) {
-               SymbolP sym = FindSymbol(stemp); // an opcode or a symbol
-               if (!sym)
+            if (*NumBuf >= 'A' && LP[0] != '$' && strncmp(LP, "0X", 2)) {
+               SymbolP Sym = FindSymbol(NumBuf); // an opcode or a symbol
+               if (!Sym)
                   break; // error (out of memory)
-               if (!sym->type) { // typ = symbol?
-                  if (dot)
+               if (!Sym->Type) { // Type = symbol?
+                  if (Dot)
                      Error("symbols can't start with '.'");
-                  typ = SYMBOL;
-                  val = (long)sym; // value = address of the symbol ptr
-                  if (!sym->first) { // symbol already exists?
-                     sym->first = true; // no, then implicitly define it
-                     sym->defined = false; // symbol value not defined
+                  Type = SymL;
+                  Value = (long)Sym; // value = address of the symbol ptr
+                  if (!Sym->First) { // symbol already exists?
+                     Sym->First = true; // no, then implicitly define it
+                     Sym->Defined = false; // symbol value not defined
                   }
                } else {
-                  typ = OPCODE; // an opcode
-                  val = sym->val; // parameter, ID
-                  if (dot && (val < 0x100 || val >= 0x200)) // only pseudo opcodes
+                  Type = OpL; // an opcode
+                  Value = Sym->Value; // parameter, ID
+                  if (Dot && (Value < 0x100 || Value >= 0x200)) // only pseudo opcodes
                      Error("opcodes can't start with '.'");
                }
             } else
                Error("symbols can't start with '$' or digits");
          }
       } else {
-         typ = OPCODE;
-         switch (c) {
+         Type = OpL;
+         switch (Ch) {
             case '>':
-               if (*sp == '>') {
-                  val = 0x120; // >> recognized
-                  sp++;
+               if (*Line == '>') {
+                  Value = 0x120; // >> recognized
+                  Line++;
                }
             break;
             case '<':
-               if (*sp == '<') {
-                  val = 0x121; // << recognized
-                  sp++;
+               if (*Line == '<') {
+                  Value = 0x121; // << recognized
+                  Line++;
                }
             break;
             case '=':
-               val = 0x105; // = matches EQU
+               Value = 0x105; // = matches EQU
             break;
             case '\'': // an ASCII character with '.'
-               val = AktLine[sp - AktUpLine]; // not capitalized ASCII character
-               if ((!val) || (sp[1] != '\'')) {
-                  val = '\'';
+               Value = BegLine[Line - UpLine]; // not capitalized ASCII character
+               if ((!Value) || (Line[1] != '\'')) {
+                  Value = '\'';
                } else {
-                  sp++;
-                  typ = NUM; // typ: a number
-                  if (*sp++ != '\'')
+                  Line++;
+                  Type = NumL; // Type: a number
+                  if (*Line++ != '\'')
                      break;
                }
             break;
-            case '\"': // an ASCII string with "..."
-               sp2 = sp;
-               base = sp - AktUpLine; // offset to the line
-               while (*sp2++ != '\"'); // search for the end of the string
-               sp2 = (char *)malloc(sp2 - sp); // allocate a buffer for the string
-               val = (long)sp2;
-               if (!sp2)
+            case '\"': { // an ASCII string with "..."
+               char *LP = Line;
+               int16_t Lx = Line - UpLine; // offset to the line
+               while (*LP++ != '\"'); // search for the end of the string
+               LP = (char *)malloc(LP - Line); // allocate a buffer for the string
+               Value = (long)LP;
+               if (!LP)
                   break;
                else {
-                  while (*sp++ != '\"') // end of the string found?
-                     *sp2++ = AktLine[base++]; // copy characters
-                  *sp2 = 0;
+                  while (*Line++ != '\"') // end of the string found?
+                     *LP++ = BegLine[Lx++]; // copy characters
+                  *LP = 0;
                }
-               typ = STRING; // type: a string
+               Type = StrL; // Type: a string
+            }
             break;
             default:
-               val = c;
+               Value = Ch;
          }
       }
-      cp->typ = typ;
-      cp->val = val; // copy into the command buffer
-      cp++;
-      if (verboseMode >= 3)
-         switch (typ) {
-            case ILLEGAL:
-               MSG(3, "ILLEGAL\n");
+      Cmd->Type = Type;
+      Cmd->Value = Value; // copy into the command buffer
+      Cmd++;
+      if (Loudness >= 3)
+         switch (Type) {
+            case BadL:
+               Log(3, "BadL\n");
             break;
-            case NUM:
-               MSG(3, "NUM:    %lX\n", val);
+            case NumL:
+               Log(3, "NumL:    %lX\n", Value);
             break;
-            case OPCODE:
-               if (val < 0x100)
-                  MSG(3, "OPCODE: '%c'\n", val);
+            case OpL:
+               if (Value < 0x100)
+                  Log(3, "OpL: '%c'\n", Value);
                else
-                  MSG(3, "OPCODE: %lX\n", val);
+                  Log(3, "OpL: %lX\n", Value);
             break;
-            case SYMBOL:
-               MSG(3, "SYMBOL: %s\n", val);
+            case SymL:
+               Log(3, "SymL: %s\n", Value);
             break;
-            case STRING:
-               MSG(3, "STRING: \"%s\"\n", (char *)val);
+            case StrL:
+               Log(3, "StrL: \"%s\"\n", (char *)Value);
             break;
          }
    }
-   cp->typ = ILLEGAL;
-   cp->val = 0; // terminate the command buffer
+   Cmd->Type = BadL;
+   Cmd->Value = 0; // terminate the command buffer
 }
