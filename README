@@ -55,7 +55,7 @@ The assembler allows mathematical expressions in operands:
 	‟+”, ‟-”, ‟*”, ‟/”, ‟%” (modulo),
 	‟&” (and), ‟|” (or), ‟!” (not), ‟^” (xor), ‟<<” (shift left) and ‟>>” (shift right).
 Brackets are also available.
-The expression parser is located in ‟Exp.c”.
+The expression parser is located in ‟Exp.cpp”.
 Numerals can be suffixed by a ‟D”, "O" (or "Q"), ‟H” or ‟B” for decimal, octal, hexadecimal and binary numerals.
 Numerals prefixed by a ‟$” are recognized as hexadecimal.
 
@@ -88,7 +88,7 @@ Exp.cpp:	Assembler expression parser
 Lex.cpp:	Assembler lexer
 Syn.cpp:	Assembler main parser
 Hex.h:		Intel Hex Input/Output common declarations
-HexIn.c:	Intel Hex Input
+HexIn.cpp:	Intel Hex Input
 HexIn.h:	Intel Hex Input, declarations
-HexEx.c:	Intel Hex Output
+HexEx.cpp:	Intel Hex Output
 HexEx.h:	Intel Hex Output, declarations

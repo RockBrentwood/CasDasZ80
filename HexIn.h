@@ -4,15 +4,12 @@
 // Reading Intel Hex data
 // ──────────────────────
 // To read data in the Intel HEX format, you must perform the actual reading of bytes using other means (e.g., stdio).
-// The bytes read must then be passed to HexGet1 and/or HexGet.
-// The reading functions will then call HexGetData, at which stage the struct HexQ structure will contain the data along with its address.
-// See below for details and example implementation of HexGetData.
+// The bytes read must then be passed to Get1 and/or Get.
+// The reading functions will then call GetData, at which stage the HexIn class will contain the data along with its address.
+// See below for details and example implementation of GetData.
 //
 // The sequence to read data in IHEX format is:
-//	struct HexQ Qb;
-//	HexInBeg(&Qb);
-//	HexGet(&Qb, InBuf, InN);
-//	HexInEnd(&Qb);
+//	{ HexIn Q; Q->Get(InBuf, InN); }
 //
 // Conserving memory
 // ─────────────────
@@ -27,62 +24,50 @@
 #ifndef HexInH
 #define HexInH
 
-#ifdef __cplusplus
-#   ifndef restrict
-#      define restrict
-#   endif
-extern "C" {
-#else
+#ifndef restrict
 #   define restrict
 #endif
 
 #include "Hex.h"
 
-// Begin reading at address 0.
-void HexInBeg(struct HexQ *Qh);
-
-// Begin reading at Addr (the lowest 16 bits of which will be ignored);
-// this is required only if the high bytes of the 32-bit starting address are not specified in the input data and they are non-zero.
-void HexGetAtAddr(struct HexQ *Qh, HexAddressT Addr);
-
+struct HexIn: public HexQ {
+// Begin reading at address Addr (the lowest 16 bits of which will be ignored), and at Seg (if segmentation is enabled).
+// Addr is required only if the high bytes of the 32-bit starting address are not specified in the input data and they are non-zero.
+// Seg is required only if the initial segment is not specified in the input data and it is non-zero.
+#ifndef HexFlatAddresses
+   HexIn(HexAddressT Addr = 0, HexSegmentT Seg = 0);
+#else
+   HexIn(HexAddressT Addr = 0);
+#endif
 // Read a single character
-void HexGet1(struct HexQ *Qh, char Ch);
-
+   void Get1(char Ch);
 // Read InN bytes from InBuf.
-void HexGet(struct HexQ *restrict Qh, const char *restrict InBuf, HexInt InN);
-
-// End reading (may call HexGetData if there is data waiting).
-void HexInEnd(struct HexQ *Qh);
-
+   void Get(const char *restrict InBuf, HexInt InN);
+// End reading (may call GetData if there is data waiting).
+   ~HexIn();
 // Called when a complete line has been read, the record type of which is passed as Type.
-// The Qh structure will have its fields Line, LineN, Address, and Segment set appropriately.
+// The fields _Line, _LineN, _Address, and _Segment are set appropriately.
 // In case of reading an HexAddrRec or an HexSegRec the record's data is not yet parsed -
-// it will be parsed into the Address or Segment field only if HexGetData returns true.
-// This allows manual handling of extended addresses by parsing the Qh->Line bytes.
+// it will be parsed into the _Address or _Segment field only if GetData returns true.
+// This allows manual handling of extended addresses by parsing the _Line bytes.
 //
 // Possible error cases include checksum mismatch (which is indicated as an argument), and excessive line length
-// (in case this has been compiled with HexLineMax less than 0xff) which is indicated by LineN greater than Length.
+// (in case this has been compiled with HexLineMax less than 0xff) which is indicated by _LineN greater than _Length.
 // Unknown record types and other erroneous data is usually silently ignored by this minimalistic parser.
 // (It is recommended to compute a hash over the complete data once received and verify that against the source.)
 //
 // Example implementation:
-//	HexBool HexGetData(struct HexQ *Qh, HexRecordT Type, HexBool Error) {
-//		Error = Error || Qh->Length < Qh->LineN;
+//	bool HexIn::GetData(HexRecordT Type, bool Error) {
+//		Error = Error || _Length < _LineN;
 //		if (Type == HexLineRec && !Error)
-//			fseek(OutFile, HexAddress(Qh), SEEK_SET), fwrite(Qh->Line, 1, Qh->Length, OutFile);
+//			fseek(OutFile, HexAddress(), SEEK_SET), fwrite(_Line, 1, _Length, OutFile);
 //		else if (Type == HexEndRec)
 //			fclose(OutFile);
 //		return !Error;
 //	}
-HexBool HexGetData(struct HexQ *Qh, HexRecordT Type, HexBool Error);
-
-// Begin reading at Seg; this is required only if the initial segment is not specified in the input data and it is non-zero.
-#ifndef HexFlatAddresses
-void HexGetAtSeg(struct HexQ *Qh, HexSegmentT Seg);
-#endif
-
-#ifdef __cplusplus
-}
-#endif
+   bool GetData(HexRecordT Type, bool Error);
+private:
+   void HexInEnd();
+};
 
 #endif // !HexInH

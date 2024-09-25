@@ -1,4 +1,4 @@
-CC=gcc
+CC=g++
 # CC=clang
 RM=rm -f
 
@@ -7,8 +7,6 @@ CFLAGS=-I. ## -Wall
 DEPS = Cas.h HexIn.h HexEx.h Makefile
 
 %.o: %.cpp $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 all: CasZ80 DasZ80

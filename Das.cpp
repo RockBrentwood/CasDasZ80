@@ -502,10 +502,9 @@ static bool LoadBin(char *InFile, uint32_t Offset) {
    FILE *InF = fopen(InFile, "rb"); if (InF == nullptr) return Ok;
    uint32_t Size;
    if (strlen(InFile) > 4 && strcmp(InFile + strlen(InFile) - 4, ".hex") == 0) {
-      struct HexQ Qb; HexInBeg(&Qb);
+      struct HexIn Q;
       char Buf[0x100];
-      while (fgets(Buf, sizeof Buf, InF)) HexGet(&Qb, Buf, strlen(Buf));
-      HexInEnd(&Qb);
+      while (fgets(Buf, sizeof Buf, InF)) Q.Get(Buf, strlen(Buf));
       goto End2;
    } else if (strlen(InFile) > 4 && strcmp(InFile + strlen(InFile) - 4, ".z80") == 0) {
       int Status = GetHeader(InF, Offset, Size);
@@ -651,16 +650,16 @@ int main(int AC, char *AV[]) {
    fclose(ExF);
 }
 
-// Call-back from HexIn.c when data has arrived.
-HexBool HexGetData(struct HexQ *Qh, HexRecordT Type, HexBool Error) {
+// Call-back from HexIn.cpp when data has arrived.
+bool HexIn::GetData(HexRecordT Type, bool Error) {
    static uint32_t HexDataN = 0;
-   Error = Error || Qh->Length < Qh->LineN;
+   Error = Error || _Length < _LineN;
    if (Type == HexLineRec && !Error) {
-      Log(4, "IHEX addr: $%04X, data len: %d\n", HexAddress(Qh), Qh->Length);
-      memcpy(Code + HexAddress(Qh), Qh->Line, Qh->Length);
-      if (HexAddress(Qh) < LoRAM) LoRAM = HexAddress(Qh);
-      if (HexAddress(Qh) + Qh->Length >= HiRAM) HiRAM = HexAddress(Qh) + Qh->Length - 1;
-      HexDataN += Qh->Length;
+      Log(4, "IHEX addr: $%04X, data len: %d\n", HexAddress(), _Length);
+      memcpy(Code + HexAddress(), _Line, _Length);
+      if (HexAddress() < LoRAM) LoRAM = HexAddress();
+      if (HexAddress() + _Length >= HiRAM) HiRAM = HexAddress() + _Length - 1;
+      HexDataN += _Length;
    } else if (Type == HexEndRec) {
       Log(4, "IHEX EOF\n");
       Log(1, "Loaded %d data bytes from hexfile into RAM region [0x%04X...0x%04X]\n", HexDataN, LoRAM, HiRAM);

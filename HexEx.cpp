@@ -18,12 +18,12 @@ static char HexExBuf[HexExMax];
 #   error "HexExLineMax > HexLineMax"
 #endif
 
-void HexExBeg(struct HexQ *const Qh) {
-   Qh->Address = 0;
+HexEx::HexEx() {
+   _Address = 0;
 #ifndef HexFlatAddresses
-   Qh->Segment = 0;
+   _Segment = 0;
 #endif
-   Qh->Flags = 0, Qh->LineN = HexExLineN, Qh->Length = 0;
+   _Flags = 0, _LineN = HexExLineN, _Length = 0;
 }
 
 static char *AddByte(char *restrict HexP, const uint8_t Byte) {
@@ -32,9 +32,9 @@ static char *AddByte(char *restrict HexP, const uint8_t Byte) {
    return HexP;
 }
 
-static char *AddWord(char *restrict HexP, const uint_fast16_t Word, uint8_t *const restrict SumP) {
+static char *AddWord(char *restrict HexP, const uint_fast16_t Word, uint8_t &Sum) {
    uint8_t HiByte = (Word >> 8)&0xffU, LoByte = Word&0xffU;
-   *SumP += HiByte + LoByte;
+   Sum += HiByte + LoByte;
    return AddByte(AddByte(HexP, (uint8_t)HiByte), (uint8_t)LoByte);
 }
 
@@ -44,7 +44,7 @@ static char *AddNL(char *restrict HexP) {
    return HexP;
 }
 
-static void PutEOF(struct HexQ *const Qh) {
+void HexEx::PutEOF() {
    char *restrict HexP = HexExBuf;
 // ':', Length, Address msb:lsb, Record Type, CheckSum.
    *HexP++ = ':';
@@ -60,98 +60,97 @@ static void PutEOF(struct HexQ *const Qh) {
    HexP = AddByte(HexP, (uint8_t)~HexEndRec + 1U);
 #endif
    HexP = AddNL(HexP);
-   HexExFlush(Qh, HexExBuf, HexP);
+   Flush(HexExBuf, HexP);
 }
 
-static void PutSegment(struct HexQ *const Qh, const HexSegmentT Seg, const uint8_t Type) {
+void HexEx::PutSegment(const HexSegmentT Seg, const uint8_t Type) {
    char *restrict HexP = HexExBuf;
    uint8_t Sum = Type + 2U;
 // ':', Length, Address msb:lsb, Record Type.
    *HexP++ = ':', HexP = AddByte(HexP, 2U), HexP = AddByte(HexP, 0), HexP = AddByte(HexP, 0), HexP = AddByte(HexP, Type);
 // Addressed Line, CheckSum, NL.
-   HexP = AddWord(HexP, Seg, &Sum), HexP = AddByte(HexP, (uint8_t)~Sum + 1U), HexP = AddNL(HexP);
-   HexExFlush(Qh, HexExBuf, HexP);
+   HexP = AddWord(HexP, Seg, Sum), HexP = AddByte(HexP, (uint8_t)~Sum + 1U), HexP = AddNL(HexP);
+   Flush(HexExBuf, HexP);
 }
 
-// Write out Qh->Line.
-static void PutHexLine(struct HexQ *const Qh) {
-   uint_fast8_t Len = Qh->Length; if (Len == 0) return;
-   if (Qh->Flags&HexAddrOverflowFlag) PutSegment(Qh, AddrPage(Qh->Address), HexAddrRec), Qh->Flags &= ~HexAddrOverflowFlag;
+// Write out _Line.
+void HexEx::PutHexLine() {
+   uint_fast8_t Len = _Length; if (Len == 0) return;
+   if (_Flags&HexAddrOverflowFlag) PutSegment(AddrPage(_Address), HexAddrRec), _Flags &= ~HexAddrOverflowFlag;
    char *restrict HexP = HexExBuf;
 // ':', Length.
    *HexP++ = ':', HexP = AddByte(HexP, Len);
    uint8_t Sum = Len;
-   Qh->Length = 0;
+   _Length = 0;
 // 16-bit Address.
-   uint_fast16_t Addr = Qh->Address&0xffffU;
-   Qh->Address += Len;
+   uint_fast16_t Addr = _Address&0xffffU;
+   _Address += Len;
 // Signal an address overflow (need to write extended address).
-   if (0xffffU - Addr < Len) Qh->Flags |= HexAddrOverflowFlag;
-   HexP = AddWord(HexP, Addr, &Sum);
+   if (0xffffU - Addr < Len) _Flags |= HexAddrOverflowFlag;
+   HexP = AddWord(HexP, Addr, Sum);
 // Record Type.
    HexP = AddByte(HexP, HexLineRec);
 #if 0
    Sum += HexLineRec; // HexLineRec is zero, so NOP.
 #endif
 // Addressed Line.
-   uint8_t *restrict LineP = Qh->Line;
+   uint8_t *restrict LineP = _Line;
    do {
       uint8_t Byte = *LineP++;
       Sum += Byte, HexP = AddByte(HexP, Byte);
    } while (--Len > 0);
 // CheckSum, NL.
    HexP = AddByte(HexP, ~Sum + 1U), HexP = AddNL(HexP);
-   HexExFlush(Qh, HexExBuf, HexP);
+   Flush(HexExBuf, HexP);
 }
 
-void HexPutAtAddr(struct HexQ *const Qh, HexAddressT Addr) {
+void HexEx::PutAtAddr(HexAddressT Addr) {
 // Flush any existing data.
-   if (Qh->Length > 0) PutHexLine(Qh);
+   if (_Length > 0) PutHexLine();
    const HexAddressT Page = Addr&AddrPageMask;
 // Write a new extended address if needed.
-   if ((Qh->Address&AddrPageMask) != Page) Qh->Flags |= HexAddrOverflowFlag;
-   else if (Qh->Address != Page) Qh->Flags &= ~HexAddrOverflowFlag;
-   Qh->Address = Addr;
-   HexSetLineN(Qh, Qh->LineN);
+   if ((_Address&AddrPageMask) != Page) _Flags |= HexAddrOverflowFlag;
+   else if (_Address != Page) _Flags &= ~HexAddrOverflowFlag;
+   _Address = Addr;
+   SetLineN(_LineN);
 }
 
-void HexSetLineN(struct HexQ *const Qh, uint8_t LineN) {
+void HexEx::SetLineN(uint8_t LineN) {
 #if HexExLineMax < 0xff
    if (LineN > HexExLineMax) LineN = HexExLineMax;
    else
 #endif
    if (LineN == 0) LineN = HexExLineN;
-   Qh->LineN = LineN;
+   _LineN = LineN;
 }
 
 #ifndef HexFlatAddresses
-void HexPutAtSeg(struct HexQ *const Qh, HexSegmentT Seg, HexAddressT Addr) {
-   HexPutAtAddr(Qh, Addr);
-   if (Qh->Segment != Seg) {
+void HexEx::PutAtSeg(HexSegmentT Seg, HexAddressT Addr) {
+   PutAtAddr(Addr);
+   if (_Segment != Seg) {
    // clear segment
-      PutSegment(Qh, (Qh->Segment = Seg), HexSegRec);
+      PutSegment((_Segment = Seg), HexSegRec);
    }
 }
 #endif
 
-void HexPut1(struct HexQ *const Qh, const int Ch) {
-   if (Qh->LineN <= Qh->Length) PutHexLine(Qh);
-   Qh->Line[Qh->Length++] = (uint8_t)Ch;
+void HexEx::Put1(const int Ch) {
+   if (_LineN <= _Length) PutHexLine();
+   _Line[_Length++] = (uint8_t)Ch;
 }
 
-void HexPut(struct HexQ *restrict const Qh, const void *restrict ExBuf, HexInt ExN) {
-   const uint8_t *ExP = ExBuf;
+void HexEx::Put(const uint8_t *restrict ExBuf, HexInt ExN) {
    while (ExN > 0)
-      if (Qh->LineN > Qh->Length) {
-         uint_fast8_t dN = Qh->LineN - Qh->Length;
-         uint8_t *HexP = Qh->Line + Qh->Length;
+      if (_LineN > _Length) {
+         uint_fast8_t dN = _LineN - _Length;
+         uint8_t *HexP = _Line + _Length;
          dN = (HexInt)dN > ExN? (uint_fast8_t)ExN: dN;
-         ExN -= dN, Qh->Length += dN;
-         do *HexP++ = *ExP++; while (--dN > 0);
-      } else PutHexLine(Qh);
+         ExN -= dN, _Length += dN;
+         do *HexP++ = *ExBuf++; while (--dN > 0);
+      } else PutHexLine();
 }
 
-void HexExEnd(struct HexQ *const Qh) {
-   PutHexLine(Qh); // Flush any remaining data.
-   PutEOF(Qh);
+HexEx::~HexEx() {
+   PutHexLine(); // Flush any remaining data.
+   PutEOF();
 }

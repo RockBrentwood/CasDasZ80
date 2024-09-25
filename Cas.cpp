@@ -200,8 +200,10 @@ int main(int AC, char **AV) {
    }
    if (Z80F != nullptr) PutHeader(Z80F, LoPC), fwrite(RAM + LoPC, sizeof RAM[0], HiPC + 1 - LoPC, Z80F);
    if (HexF != nullptr) {
+   {
    // Write the data as Intel Hex.
-      struct HexQ Qb; HexExBeg(&Qb), HexPutAtAddr(&Qb, LoPC), HexPut(&Qb, RAM + LoPC, HiPC + 1 - LoPC), HexExEnd(&Qb);
+      HexEx Q; Q.PutAtAddr(LoPC), Q.Put(RAM + LoPC, HiPC + 1 - LoPC);
+   }
       fclose(HexF);
    }
    return 0;
@@ -215,6 +217,6 @@ void CheckPC(uint32_t PC) {
    Log(3, "[%04X..%04X]\n", LoPC, HiPC);
 }
 
-void HexExFlush(struct HexQ *Qh, char *Buf, char *EndP) {
-   (void)Qh, *EndP = '\0', fputs(Buf, HexF);
+void HexEx::Flush(char *Buf, char *EndP) {
+   *EndP = '\0', fputs(Buf, HexF);
 }
