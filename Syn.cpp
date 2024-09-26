@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <cstring>
 
+bool AtEnd = false;
+
 // Get operands for an opcode.
 static int16_t GetOperand(CommandP &Cmd, int32_t *ValueP) {
    LastPatch = nullptr; // To be safe: reset the patch entry.
@@ -591,6 +593,17 @@ static void DoPseudo(CommandP &Cmd) {
          PC += GetExp(Cmd);
          if (LastPatch != nullptr) Error("symbol not defined");
       break;
+      case _fill: {
+         uint16_t Fill = 0, Size = GetExp(Cmd); // Get the amount.
+         if (LastPatch != nullptr) Error("symbol not defined");
+         if (Cmd->Type == OpL && Cmd->Value == ',') { // ", val" part?
+            Cmd++, Fill = GetExp(Cmd); // Get the fill value.
+            if (LastPatch != nullptr) Error("symbol not defined");
+         }
+         CheckPC(PC + Size - 1);
+         while (Size-- > 0) RAM[PC++] = Fill;
+      }
+      break;
       case _dw:
          Cmd--;
          do {
@@ -604,8 +617,8 @@ static void DoPseudo(CommandP &Cmd) {
       break;
       case _end:
          if (PassOver) Error("IF without ENDIF");
-         Error("Reached the end of the source code -> exit");
-      exit(0);
+         AtEnd = true;
+      break;
    // Set the PC.
       case _org:
          PC = GetExp(Cmd);
@@ -634,15 +647,15 @@ void CompileLine(void) {
    if (Cmd->Type == 0) return; // Empty line => done.
    if (Cmd->Type == SymL && !PassOver) { // The symbol is at the beginning, but not IF?
       SymbolP Sym = (SymbolP)Cmd->Value; // Dereference the symbol.
-      if (Sym->Defined) { Error("symbol already defined"); return; }
+      if (Sym->Defined) Error("symbol already defined");
       Cmd++; // The next command.
       if (Cmd->Type == OpL && Cmd->Value == ':') Cmd++; // Ignore a ":" after a symbol.
-      if (Cmd->Type == OpL && Cmd->Value == 0x105) { // EQU?
+      if (Cmd->Type == OpL && Cmd->Value == _equ) { // EQU?
       // Skip EQU and calculate the expression.
          Cmd++, Sym->Value = GetExp(Cmd);
          if (LastPatch != nullptr) Error("symbol not defined in a formula");
          Sym->Defined = true; // The symbol is now defined.
-         if (Cmd->Type != BadL) { Error("EQU is followed by illegal data"); return; }
+         if (Cmd->Type != BadL) Error("EQU is followed by illegal data");
       } else Sym->Value = CurPC, Sym->Defined = true; // The symbol is an address defined as the current PC.
       while (Sym->Patch != nullptr) { // Do expressions depend on the symbol?
          PatchListP Patch = Sym->Patch;
@@ -669,9 +682,9 @@ void CompileLine(void) {
    if (PassOver) { // Inside an IF?
       if (Cmd->Type == OpL) switch (Cmd->Value) {
       // ENDIF reached: start compiling.
-         case 0x108: PassOver = false; break;
+         case _endif: PassOver = false; break;
       // ELSE reached: toggle IF flag.
-         case 0x109: PassOver = !PassOver; break;
+         case _else: PassOver = !PassOver; break;
       }
    } else while (Cmd->Type != 0) { // Scan to the end of the line.
       uint16_t Value = Cmd->Value;

@@ -12,7 +12,7 @@ enum Lexical {
    StrL		// A string.
 };
 
-enum Pseudo_t { _db = 0x100, _dm, _ds, _dw, _end, _equ, _org, _if, _endif, _else, _print };
+enum Pseudo_t { _db = 0x100, _dm, _ds, _dw, _end, _equ, _org, _if, _endif, _else, _print, _fill };
 
 // An encoded opcode.
 typedef struct Command {
@@ -53,6 +53,7 @@ extern PatchListP LastPatch;	// To patch the type for incomplete formulas.
 int32_t GetExp(CommandP &Cmd);	// Calculate an expression.
 
 // From Syn.cpp:
+extern bool AtEnd;
 void CompileLine(void);		// Compile a line into machine code.
 
 // From Cas.cpp:

@@ -150,7 +150,7 @@ int main(int AC, char **AV) {
    RAM = (uint8_t *)malloc(MaxRAM + 0x100); // Guard against overflow at the RAM top.
    memset(RAM, Fill, MaxRAM); // Erase the 64K RAM.
    CurPC = 0x0000; // The default start address of the code.
-   for (LineNo = 1; ; LineNo++) { // For each line:
+   for (LineNo = 1; !AtEnd; LineNo++) { // For each line:
       uint32_t BegPC = CurPC;
    // Read a single line; exit at the end of the code.
       char *Line = fgets(LineBuf, sizeof LineBuf, AsmF); if (Line == nullptr) break;

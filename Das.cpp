@@ -57,6 +57,8 @@ static uint32_t LoRAM = CodeMax, HiRAM = 0;
 
 static int Loudness = 0;
 
+static char NumPre = '$';
+
 static void Log(int Loud, const char *Format, ...) {
    if (Loudness >= Loud) {
       va_list AP; va_start(AP, Format), vfprintf(stderr, Format, AP), va_end(AP);
@@ -230,9 +232,9 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
          case 0: switch (Y) {
             case 0: Gen("NOP"); break;
             case 1: Gen("EX      AF,AF'"); break;
-            case 2: Gen("DJNZ    $%4.4X", IP + 2 + Byte1); break;
-            case 3: Gen("JR      $%4.4X", IP + 2 + Byte1); break;
-            default: Gen("JR      %s,$%4.4X", Cc[Y&3], IP + 2 + Byte1); break;
+            case 2: Gen("DJNZ    %c%4.4X", NumPre, IP + 2 + Byte1); break;
+            case 3: Gen("JR      %c%4.4X", NumPre, IP + 2 + Byte1); break;
+            default: Gen("JR      %s,%c%4.4X", Cc[Y&3], NumPre, IP + 2 + Byte1); break;
          }
          break;
          case 1: switch (Yq = Y >> 1, Y&1) {
@@ -283,9 +285,9 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
             }
          }
          break;
-         case 2: Gen("JP      %s,$%4.4X", Cc[Y], Word12); break;
+         case 2: Gen("JP      %s,%c%4.4X", Cc[Y], NumPre, Word12); break;
          case 3: switch (Y) {
-            case 0: Gen("JP      $%4.4X", Word12); break;
+            case 0: Gen("JP      %c%4.4X", NumPre, Word12); break;
          // 0313
             case 1:
                Prefix++, Op = Code[++IP], X = (Op >> 6)&3, Y = (Op >> 3)&7, Z = Op&7; // Fetch the secondary opcode.
@@ -305,11 +307,11 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
             case 7: Gen("EI"); break;
          }
          break;
-         case 4: Gen("CALL    %s,$%4.4X", Cc[Y], Word12); break;
+         case 4: Gen("CALL    %s,%c%4.4X", Cc[Y], NumPre, Word12); break;
          case 5: switch (Yq = Y >> 1, Y&1) {
             case 0: Gen("PUSH    %s", Yq == 3? "AF": Rw[Yq]); break;
             case 1: switch (Yq) {
-               case 0: Gen("CALL    $%4.4X", Word12); break;
+               case 0: Gen("CALL    %c%4.4X", NumPre, Word12); break;
             // 0355
                case 2:
                   Prefix++, Op = Code[++IP], X = (Op >> 6)&3, Y = (Op >> 3)&7, Z = Op&7; // Fetch the secondary opcode.
@@ -585,7 +587,7 @@ int main(int AC, char *AV[]) {
             }
             break;
          // Parse the program flow.
-            case 'p': DoParse = true; break;
+            case 'p': DoParse = true, NumPre = 'L'; break;
          // Parse the program flow.
             case 'r': DoParseInt = true; break;
             case 'v': Loudness++; break;
@@ -633,10 +635,10 @@ int main(int AC, char *AV[]) {
       } else {
          uint32_t N = OpLen(IP); // Get the opcode length.
          if (!DoHex) {
-            if (Mode[IP]&0x10) fprintf(ExF, "L%4.4X:  ", IP);
+            if (Mode[IP]&0x10) fprintf(ExF, "%c%4.4X:  ", DoParse? 'L': '$', IP);
             else fprintf(ExF, "        ");
          } else {
-            fprintf(ExF, "%4.4X    ", (uint16_t)IP);
+            fprintf(ExF, "%c%4.4X   ", DoParse? 'L': '$', (uint16_t)IP);
             for (uint32_t n = 0; n < N; n++) fprintf(ExF, "%2.2X ", Code[IP + n]);
             for (uint32_t n = 4; n > N; n--) fprintf(ExF, "   ");
             fprintf(ExF, "    ");

@@ -17,9 +17,14 @@ static const ShortSym Pseudo[] = {
    { _dm, "DEFM", 0x0000 }, { _dm, "DM", 0x0000 },
    { _ds, "DEFS", 0x0000 }, { _ds, "DS", 0x0000 },
    { _dw, "DEFW", 0x0000 }, { _dw, "DW", 0x0000 },
-   { _else, "ELSE", 0x0000 }, { _end, "END", 0x0000 },
-   { _endif, "ENDIF", 0x0000 }, { _equ, "EQU", 0x0000 }, { _if, "IF", 0x0000 },
-   { _org, "ORG", 0x0000 }, { _print, "PRINT", 0x0000 }
+   { _end, "END", 0x0000 },
+   { _equ, "EQU", 0x0000 },
+   { _org, "ORG", 0x0000 },
+   { _if, "IF", 0x0000 },
+   { _endif, "ENDIF", 0x0000 },
+   { _else, "ELSE", 0x0000 },
+   { _print, "PRINT", 0x0000 },
+   { _fill, "FILL", 0x0000 }
 };
 
 // Type:
@@ -236,7 +241,7 @@ void TokenizeLine(char *Line) {
                if (*Line == '<') Value = 0x121, Line++; // '<<' recognized.
             break;
          // '=' matches EQU
-            case '=': Value = 0x105; break;
+            case '=': Value = _equ; break;
          // An ASCII character with '.'.
             case '\'':
                Value = BegLine[Line - UpLine]; // Not capitalized ASCII character.
