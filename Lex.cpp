@@ -108,7 +108,7 @@ SymbolP SymTab[0x100];	// The symbol table (split by the upper hash byte).
 // Calculate a simple hash for a string.
 static uint16_t CalcHash(const char *Name) {
    uint16_t Hash = 0;
-   for (uint8_t Ch; (Ch = *Name++) != 0; ) {
+   for (uint8_t Ch; (Ch = *Name++) != '\0'; ) {
 #if 0
       Hash += Ch;
 #else
@@ -159,7 +159,7 @@ void TokenizeLine(char *Line) {
    char UpLine[LineMax];
    for (char *LP = UpLine; (*LP++ = toupper(*Line++)) != '\0'; ); // Convert to capital letters.
    Line = UpLine;
-   while (1) { // Parse the whole string.
+   while (true) { // Parse the whole string.
       char Ch;
       while ((isspace(Ch = *Line++))); // Skip spaces.
       if (Ch == ';' || Ch == '\0') break; // An end-of-line, possibly preceded by a ';' comment, which is skipped.
@@ -279,6 +279,5 @@ void TokenizeLine(char *Line) {
          case StrL: Log(3, "StrL: \"%s\"\n", (char *)Value); break;
       }
    }
-   Cmd->Type = BadL;
-   Cmd->Value = 0; // Terminate the command buffer.
+   Cmd->Type = BadL, Cmd->Value = 0; // Terminate the command buffer.
 }

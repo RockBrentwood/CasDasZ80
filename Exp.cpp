@@ -40,13 +40,13 @@ static int32_t GetExp3(CommandP &Cmd) {
 // Interpret a sign.
 static int32_t GetExp2(CommandP &Cmd) {
    bool HasNeg = false, HasNot = false;
-   if (Cmd->Type == OpL) {
+   if (Cmd->Type == OpL) switch (Cmd->Value) {
    // Skip the sign: negative, and tag it.
-      if (Cmd->Value == '-') Cmd++, HasNeg = true;
+      case '-': Cmd++, HasNeg = true; break;
    // Skip the sign: positive.
-      else if (Cmd->Value == '+') Cmd++;
+      case '+': Cmd++; break;
    // Skip the sign: not, and tag it.
-      else if (Cmd->Value == '!') Cmd++, HasNot = true;
+      case '!': Cmd++, HasNot = true; break;
    }
    int32_t Value = GetExp3(Cmd);
    if (HasNeg) Value = -Value; // Negative operator: negate.

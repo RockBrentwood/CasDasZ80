@@ -48,7 +48,6 @@
 #include <cstring>
 
 static const uint32_t CodeMax = 0x10000;
-
 static uint8_t Code[CodeMax];	// Memory for the code.
 static uint8_t Mode[CodeMax];	// Type of opcode.
 // Values for 'Mode': 0x10: (Bit 4) indicates a jump/call address reference.
@@ -538,7 +537,7 @@ int main(int AC, char *AV[]) {
    uint32_t Offset = 0, Start = 0;
    int Fill = 0;
    for (int A = 1, Ax = 0; A < AC; A++)
-      if ('-' == AV[A][0]) {
+      if (AV[A][0] == '-') {
          switch (AV[A][++Ax]) {
          // Fill.
             case 'f': {
@@ -552,7 +551,7 @@ int main(int AC, char *AV[]) {
                   fprintf(stderr, "Error: option -f needs a hexadecimal argument\n");
                   return 1;
                }
-               Ax = 0; // End of this arg group.
+               Ax = 0; // The end of this arg group.
             }
             break;
          // Offset.
@@ -567,7 +566,7 @@ int main(int AC, char *AV[]) {
                   fprintf(stderr, "Error: option -o needs a hexadecimal argument\n");
                   return 1;
                }
-               Ax = 0; // End of this arg group.
+               Ax = 0; // The end of this arg group.
             }
             break;
          // Start.
@@ -582,7 +581,7 @@ int main(int AC, char *AV[]) {
                   fprintf(stderr, "Error: option -s needs a hexadecimal argument\n");
                   return 1;
                }
-               Ax = 0; // End of this arg group.
+               Ax = 0; // The end of this arg group.
             }
             break;
          // Parse the program flow.
@@ -610,7 +609,7 @@ int main(int AC, char *AV[]) {
       for (uint32_t IP = LoRAM; IP <= HiRAM; IP++) Mode[IP] = Data;
       if (DoParseInt) {
       // Parse the rst vectors, if needed.
-         for (int n = 0; n < 0100; n += 010) if ((Mode[n]&0x0f) == Data) ParseOpcodes(n);
+         for (int IP = 0; IP < 0100; IP += 010) if ((Mode[IP]&0x0f) == Data) ParseOpcodes(IP);
       // Also, parse the NMI vector, if needed.
          if ((Mode[0146]&0x0f) == Data) ParseOpcodes(0146);
       }
@@ -628,7 +627,7 @@ int main(int AC, char *AV[]) {
          fprintf(ExF, "L%4.4X:  DEFB", (uint16_t)IP);
          for (uint32_t n = 0; n < 16; IP++, n++) {
             if ((Mode[IP]&0x0f) != Data || IP >= CodeN) break;
-            fprintf(ExF, "%s$%2.2X", (n)? ",": "    ", Code[IP]);
+            fprintf(ExF, "%s$%2.2X", n? ",": "    ", Code[IP]);
          }
          fprintf(ExF, "\n");
       } else {

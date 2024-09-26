@@ -64,7 +64,7 @@
 #ifndef HexH
 #define HexH
 
-#define KK_IHEX_VERSION "2024-09-21"
+#define HexVersion "2024-09-24"
 
 #include <stdint.h>
 #include <stdbool.h>

@@ -28,7 +28,7 @@ void Error(const char *Message) {
 }
 
 static void Usage(const char *Path) {
-   const char *App = nullptr;
+   const char *App = Path;
    for (char Ch; (Ch = *Path++) != '\0'; ) if (Ch == '/' || Ch == '\\') App = Path;
    printf(
       "Usage: %s [-l] [-n] [-v] INFILE\n"
@@ -217,6 +217,6 @@ void CheckPC(uint32_t PC) {
    Log(3, "[%04X..%04X]\n", LoPC, HiPC);
 }
 
-void HexEx::Flush(char *Buf, char *EndP) {
-   *EndP = '\0', fputs(Buf, HexF);
+void HexEx::Flush(char *Buffer, char *EndP) {
+   *EndP = '\0', fputs(Buffer, HexF);
 }
