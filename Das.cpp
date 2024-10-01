@@ -3,7 +3,7 @@
 // The program has two parts:
 // ▪	Analyze the code.
 // 	The disassembler tries to analyze what part of the binary data is program code and what part is data.
-// 	It start with all hardware vectors of the Z80 (‟RST” opcodes, ‟NMI”) and parses all jumps via a recursive analyze via ‟ParseOpcode()”.
+// 	It start with all hardware vectors of the Z80 (‟RST” opcodes, ‟NMI”) and parses all jumps via a recursive analyze via ‟OpScan()”.
 // 	Every opcode is marked in an array (‟Mode”).
 // 	There are some exceptions, the parser can't recognize:
 // 	―	Self Modifying Code:
@@ -16,7 +16,7 @@
 // 	―	Indirect Jumps: organized as jump tables.
 // 		These are quite common in a ROM.
 // 		The same applies here, as with calculated branches.
-// 		If you find a jump table - like on Markuz' Futura aquarium computer - more entry points for ‟ParseOpcodes()” will need to be added.
+// 		If you find a jump table - like on Markuz' Futura aquarium computer - more entry points for ‟OpScan()” will need to be added.
 // 	―	Unused code.
 // 		This can be code that is reached from an unrecognized destination of an indirect jump, or as an unrecognized entry point.
 // 		It if assumes a regular form, consisting particularly of bytes are in the range of printable characters, then it may be initialized data.
@@ -125,17 +125,29 @@ static int OpLen(uint16_t IP) {
          case 0042: case 0052:
       // ld (Rx+Ds),Db
          case 0066:
-      // Rotation,Bit-Op (Rx+Ds).
-         case 0313:
             Len += 2;
+         break;
+      // Rotation,Bit-Op (Rx+Ds).
+         case 0313: switch (Len++, Code[++IP]) {
+         // ShOp (Rx+Ds); [ShOp: rlc; rrc; rl; rr; sla; sra; sll; srl]
+            case 0006: case 0016: case 0026: case 0036: case 0046: case 0056: case 0066: case 0076:
+         // bit n,(Rx+Ds); [n=0⋯7]
+            case 0106: case 0116: case 0126: case 0136: case 0146: case 0156: case 0166: case 0176:
+         // res n,(Rx+Ds); [n=0⋯7]
+            case 0206: case 0216: case 0226: case 0236: case 0246: case 0256: case 0266: case 0276:
+         // set n,(Rx+Ds); [n=0⋯7]
+            case 0306: case 0316: case 0326: case 0336: case 0346: case 0356: case 0366: case 0376:
+               Len++;
+            break;
+         }
          break;
       }
       break;
       case 0355: switch (Len++, Code[IP++]) { // The secondary opcode.
-      // ld (Aw),BC; ld (Aw),DE; ld (Aw),SP
-         case 0103: case 0123: case 0163:
-      // ld BC,(Aw); ld DE,(Aw); ld SP,(Aw)
-         case 0113: case 0133: case 0173:
+      // ld (Aw),BC; ld (Aw),DE; ld (Aw),HL; ld (Aw),SP
+         case 0103: case 0123: case 0143: case 0163:
+      // ld BC,(Aw); ld DE,(Aw); ld HL,(Aw); ld SP,(Aw)
+         case 0113: case 0133: case 0153: case 0173:
             Len += 2;
          break;
       }
@@ -149,7 +161,7 @@ static int OpLen(uint16_t IP) {
 #define Byte2 Code[IP + 2]
 #define Word12 (Byte1 + (Byte2 << 8))
 
-static void ParseOpcodes(uint16_t IP) {
+static void OpScan(uint16_t IP) {
    bool Label = true;
    while (true) {
    // Mark address references to the opcode area.
@@ -165,25 +177,26 @@ static void ParseOpcodes(uint16_t IP) {
    // Mark address references to the opcode area.
       if (Label) Mode[IP] |= 0x10, Label = false;
       uint32_t NextIP = IP + N; // Save the next opcode.
+      uint8_t Js; // Used for signed address offsets.
       switch (Code[IP]) { // Fetch the primary opcode.
-      // jp Cc,Js; [Cc: nz; z; nc; c; po; pe; p; m]
-         case 0302: case 0312: case 0322: case 0332: case 0342: case 0352: case 0362: case 0372: ParseOpcodes(Word12); break;
+      // jp Cc,Aw; [Cc: nz; z; nc; c; po; pe; p; m]
+         case 0302: case 0312: case 0322: case 0332: case 0342: case 0352: case 0362: case 0372: OpScan(Word12); break;
       // jr Cc,Js; [Cc: nz; z; nc; c]
-         case 0040: case 0050: case 0060: case 0070: ParseOpcodes(IP + 2 + Byte1); break;
-      // call Cc,Js; [Cc: nz; z; nc; c; po; pe; p; m]
-         case 0304: case 0314: case 0324: case 0334: case 0344: case 0354: case 0364: case 0374: ParseOpcodes(Word12); break;
+         case 0040: case 0050: case 0060: case 0070: Js = Byte1, OpScan(IP + 2 + (Js < 0x80? Js: Js - 0x100)); break;
+      // call Cc,Aw; [Cc: nz; z; nc; c; po; pe; p; m]
+         case 0304: case 0314: case 0324: case 0334: case 0344: case 0354: case 0364: case 0374: OpScan(Word12); break;
       // ret Cc; [Cc: nz; z; nc; c; po; pe; p; m]
          case 0300: case 0310: case 0320: case 0330: case 0340: case 0350: case 0360: case 0370: break;
       // rst 10q*n; [n: 0; 1; 2; 3; 4; 5; 6; 7]
-         case 0307: case 0317: case 0327: case 0337: case 0347: case 0357: case 0367: case 0377: ParseOpcodes(Code[IP]&070); break;
-      // djnz Ds
-         case 0020: ParseOpcodes(IP + 2 + Byte1); break;
+         case 0307: case 0317: case 0327: case 0337: case 0347: case 0357: case 0367: case 0377: OpScan(Code[IP]&070); break;
+      // djnz Js
+         case 0020: Js = Byte1, OpScan(IP + 2 + (Js < 0x80? Js: Js - 0x100)); break;
       // jp Aw
          case 0303: NextIP = Word12, Label = true; break;
-      // jr Ds
-         case 0030: NextIP = IP + 2 + Byte1, Label = true; break;
+      // jr Js
+         case 0030: Js = Byte1, NextIP = IP + 2 + (Js < 0x80? Js: Js - 0x100), Label = true; break;
       // call Aw
-         case 0315: ParseOpcodes(Word12); break;
+         case 0315: OpScan(Word12); break;
       // ret
          case 0311: return;
 #if DETECT_JUMPTABLES
@@ -365,32 +378,36 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
                      }
                      break;
                      case 2: switch (Z) {
-                        case 0: switch (Y&3) {
-                           case 0: Gen("LDI"); break;
-                           case 1: Gen("LDD"); break;
-                           case 2: Gen("LDIR"); break;
-                           case 3: Gen("LDDR"); break;
+                        case 0: switch (Y) {
+                           default: Gen("???"); break;
+                           case 4: Gen("LDI"); break;
+                           case 5: Gen("LDD"); break;
+                           case 6: Gen("LDIR"); break;
+                           case 7: Gen("LDDR"); break;
                         }
                         break;
-                        case 1: switch (Y&3) {
-                           case 0: Gen("CPI"); break;
-                           case 1: Gen("CPD"); break;
-                           case 2: Gen("CPIR"); break;
-                           case 3: Gen("CPDR"); break;
+                        case 1: switch (Y) {
+                           default: Gen("???"); break;
+                           case 4: Gen("CPI"); break;
+                           case 5: Gen("CPD"); break;
+                           case 6: Gen("CPIR"); break;
+                           case 7: Gen("CPDR"); break;
                         }
                         break;
-                        case 2: switch (Y&3) {
-                           case 0: Gen("INI"); break;
-                           case 1: Gen("IND"); break;
-                           case 2: Gen("INIR"); break;
-                           case 3: Gen("INDR"); break;
+                        case 2: switch (Y) {
+                           default: Gen("???"); break;
+                           case 4: Gen("INI"); break;
+                           case 5: Gen("IND"); break;
+                           case 6: Gen("INIR"); break;
+                           case 7: Gen("INDR"); break;
                         }
                         break;
-                        case 3: switch (Y&3) {
-                           case 0: Gen("OUTI"); break;
-                           case 1: Gen("OUTD"); break;
-                           case 2: Gen("OTIR"); break;
-                           case 3: Gen("OTDR"); break;
+                        case 3: switch (Y) {
+                           default: Gen("???"); break;
+                           case 4: Gen("OUTI"); break;
+                           case 5: Gen("OUTD"); break;
+                           case 6: Gen("OTIR"); break;
+                           case 7: Gen("OTDR"); break;
                         }
                         break;
                         default: Gen("???"); break;
@@ -400,7 +417,8 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
                   if (Loudness > 1) ShowOp(Buf, BufN, Op); // Debug info for 355 ⋯.
                break;
             // 335: IX, 375: IY.
-               case 1: case 3:
+               case 1: case 3: {
+                  uint8_t Ds; // Used for signed address indexes.
                   Rx = (Yq&2)? "IY": "IX";
                   Prefix++, Op = Code[++IP], Y = (Op >> 3)&7, Z = Op&7; // Fetch the secondary opcode.
                   switch (Op) {
@@ -413,17 +431,17 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
                      case 0052: Gen("LD      %s,($%4.4X)", Rx, Word12); break;
                      case 0043: Gen("INC     %s", Rx); break;
                      case 0053: Gen("DEC     %s", Rx); break;
-                     case 0064: Gen("INC     (%s+$%2.2X)", Rx, Byte1); break;
-                     case 0065: Gen("DEC     (%s+$%2.2X)", Rx, Byte1); break;
-                     case 0066: Gen("LD      (%s+$%2.2X),$%2.2X", Rx, Byte1, Byte2); break;
+                     case 0064: Ds = Byte1, Ds < 0x80? Gen("INC     (%s+$%2.2X)", Rx, Byte1): Gen("INC     (%s-$%2.2X)", Rx, 0x100 - Ds); break;
+                     case 0065: Ds = Byte1, Ds < 0x80? Gen("DEC     (%s+$%2.2X)", Rx, Byte1): Gen("DEC     (%s-$%2.2X)", Rx, 0x100 - Ds); break;
+                     case 0066: Ds = Byte1, Ds < 0x80? Gen("LD      (%s+$%2.2X),$%2.2X", Rx, Byte1, Byte2): Gen("LD      (%s-$%2.2X),$%2.2X", Rx, 0x100 - Ds, Byte2); break;
                      case 0106: case 0116: case 0126: case 0136: case 0146: case 0156: case 0176:
-                        Gen("LD      %s,(%s+$%2.2X)", Rb[Y], Rx, Byte1);
+                        Ds = Byte1, Ds < 0x80? Gen("LD      %s,(%s+$%2.2X)", Rb[Y], Rx, Ds): Gen("LD      %s,(%s-$%2.2X)", Rb[Y], Rx, 0x100 - Ds);
                      break;
                      case 0160: case 0161: case 0162: case 0163: case 0164: case 0165: case 0167:
-                        Gen("LD      (%s+$%2.2X),%s", Rx, Byte1, Rb[Z]);
+                        Ds = Byte1, Ds < 0x80? Gen("LD      (%s+$%2.2X),%s", Rx, Ds, Rb[Z]): Gen("LD      (%s-$%2.2X),%s", Rx, 0x100 - Ds, Rb[Z]);
                      break;
                      case 0206: case 0216: case 0226: case 0236: case 0246: case 0256: case 0266: case 0276:
-                        Gen("%-8s(%s+$%2.2X)", AOp[Y], Rx, Byte1);
+                        Ds = Byte1, Ds < 0x80? Gen("%-8s(%s+$%2.2X)", AOp[Y], Rx, Ds): Gen("%-8s(%s-$%2.2X)", AOp[Y], Rx, 0x100 - Ds);
                      break;
                      case 0341: Gen("POP     %s", Rx); break;
                      case 0343: Gen("EX      (SP),%s", Rx); break;
@@ -431,17 +449,36 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
                      case 0351: Gen("JP      (%s)", Rx); break;
                      case 0371: Gen("LD      SP,%s", Rx); break;
                      case 0313:
-                        Prefix++, Op = Byte2, X = (Op >> 6)&3, Y = (Op >> 3)&7; // Fetch the tertiary opcode.
-                        switch (X) {
-                           case 0: Gen("%-8s(%s+$%2.2X)", ShOp[Y], Rx, Byte1); break;
-                           case 1: Gen("BIT     %d,(%s+$%2.2X)", Y, Rx, Byte1); break;
-                           case 2: Gen("RES     %d,(%s+$%2.2X)", Y, Rx, Byte1); break;
-                           case 3: Gen("SET     %d,(%s+$%2.2X)", Y, Rx, Byte1); break;
+                        Prefix++, Op = Byte2, X = (Op >> 6)&3, Y = (Op >> 3)&7, Z = Op&7; // Fetch the tertiary opcode.
+                        switch (Z) {
+                           case 4: switch (X) {
+                              case 0: Gen("%-8s%sH", ShOp[Y], Rx); break;
+                              case 1: Gen("BIT     %d,%sH", Y, Rx); break;
+                              case 2: Gen("RES     %d,%sH", Y, Rx); break;
+                              case 3: Gen("SET     %d,%sH", Y, Rx); break;
+                           }
+                           break;
+                           case 5: switch (X) {
+                              case 0: Gen("%-8s%sL", ShOp[Y], Rx); break;
+                              case 1: Gen("BIT     %d,%sL", Y, Rx); break;
+                              case 2: Gen("RES     %d,%sL", Y, Rx); break;
+                              case 3: Gen("SET     %d,%sL", Y, Rx); break;
+                           }
+                           break;
+                           case 6: switch (X) {
+                              case 0: Ds = Byte1, Ds < 0x80? Gen("%-8s(%s+$%2.2X)", ShOp[Y], Rx, Ds): Gen("%-8s(%s-$%2.2X)", ShOp[Y], Rx, 0x100 - Ds); break;
+                              case 1: Ds = Byte1, Ds < 0x80? Gen("BIT     %d,(%s+$%2.2X)", Y, Rx, Ds): Gen("BIT     %d,(%s-$%2.2X)", Y, Rx, 0x100 - Ds); break;
+                              case 2: Ds = Byte1, Ds < 0x80? Gen("RES     %d,(%s+$%2.2X)", Y, Rx, Ds): Gen("RES     %d,(%s-$%2.2X)", Y, Rx, 0x100 - Ds); break;
+                              case 3: Ds = Byte1, Ds < 0x80? Gen("SET     %d,(%s+$%2.2X)", Y, Rx, Ds): Gen("SET     %d,(%s-$%2.2X)", Y, Rx, 0x100 - Ds); break;
+                           }
+                           break;
+                           default: Gen("???"); break;
                         }
                         if (Loudness > 1) ShowOp(Buf, BufN, Op); // Debug info for 335/375 313 ⋯.
                      break;
                   }
                   if (Loudness > 1 && Prefix < 2) ShowOp(Buf, BufN, Op); // Debug info for 335/375 ⋯.
+               }
                break;
             }
             break;
@@ -611,11 +648,11 @@ int main(int AC, char *AV[]) {
       for (uint32_t IP = LoRAM; IP <= HiRAM; IP++) Mode[IP] = Data;
       if (DoParseInt) {
       // Parse the rst vectors, if needed.
-         for (int IP = 0; IP < 0100; IP += 010) if ((Mode[IP]&0x0f) == Data) ParseOpcodes(IP);
+         for (int IP = 0; IP < 0100; IP += 010) if ((Mode[IP]&0x0f) == Data) OpScan(IP);
       // Also, parse the NMI vector, if needed.
-         if ((Mode[0146]&0x0f) == Data) ParseOpcodes(0146);
+         if ((Mode[0146]&0x0f) == Data) OpScan(0146);
       }
-      ParseOpcodes(LoRAM);
+      OpScan(LoRAM);
    }
    FILE *ExF = ExFile? fopen(ExFile, "w"): stdout;
    if (ExF == nullptr) {

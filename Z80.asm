@@ -1151,7 +1151,7 @@
         LD      A,$00
         INC     IY
         PUSH    IY
-        OR      (IY+$FE)
+        OR      (IY-$02)
         DEC     IY
         DJNZ    $0AFA
         POP     IY
@@ -1420,7 +1420,7 @@
         LD      B,$01
         LD      C,$05
         LD      IY,$200E
-        LD      A,(IY+$FF)
+        LD      A,(IY-$01)
         ADD     A,A
         ADD     A,A
         ADD     A,A
@@ -1435,7 +1435,7 @@
         DEC     IY
         INC     C
         DJNZ    $0DAF
-        LD      A,(IY+$FF)
+        LD      A,(IY-$01)
         ADD     A,A
         ADD     A,A
         ADD     A,A
@@ -1500,10 +1500,10 @@
         LD      A,$00
         CP      (IY+$00)
         JR      NZ,$0D56
-        CP      (IY+$FF)
+        CP      (IY-$01)
         JR      NZ,$0D56
         LD      A,$01
-        CP      (IY+$FE)
+        CP      (IY-$02)
         JR      NZ,$0D56
         LD      A,$55
         LD      ($20FA),A
@@ -1514,7 +1514,7 @@
         LD      A,$00
         INC     IY
         PUSH    IY
-        OR      (IY+$FD)
+        OR      (IY-$03)
         DEC     IY
         DJNZ    $0E5D
         POP     IY
@@ -1901,14 +1901,14 @@
         LD      ($C000),A
         RET
         LD      HL,$0000
-        LD      A,(IY+$FE)
+        LD      A,(IY-$02)
         CP      $00
         JR      Z,$1054
         LD      B,A
         LD      DE,$0064
         ADD     HL,DE
         DJNZ    $1151
-        LD      A,(IY+$FF)
+        LD      A,(IY-$01)
         CP      $00
         JR      Z,$1062
         LD      B,A
@@ -2115,7 +2115,7 @@
         LD      B,$01
         LD      A,$00
         PUSH    IY
-        OR      (IY+$FD)
+        OR      (IY-$03)
         DEC     IY
         DJNZ    $134B
         POP     IY
@@ -2217,7 +2217,7 @@
         LD      B,A
         LD      A,$00
         PUSH    IY
-        OR      (IY+$FD)
+        OR      (IY-$03)
         DEC     IY
         DJNZ    $1441
         POP     IY
@@ -2261,7 +2261,7 @@
         LD      A,$00
         INC     IY
         PUSH    IY
-        OR      (IY+$FD)
+        OR      (IY-$03)
         DEC     IY
         DJNZ    $14A3
         POP     IY
