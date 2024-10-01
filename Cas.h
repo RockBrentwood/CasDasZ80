@@ -121,8 +121,6 @@ void CompileLine(void);		// Compile a line into machine code.
 // From Cas.cpp:
 extern uint32_t CurPC;			// The current address.
 extern uint8_t *RAM;			// The 64K RAM of the Z80.
-extern int Loudness;
 void Error(const char *Message);	// Print a fatal error message and exit.
-void Log(int Loud, const char *Format, ...);
 void List(const char *Format, ...);
 void CheckPC(uint32_t PC);

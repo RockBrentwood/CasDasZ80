@@ -55,29 +55,7 @@ enum { Empty, Opcode, Operand, Data };
 
 static uint32_t LoRAM = CodeMax, HiRAM = 0;
 
-static int Loudness = 0;
-
 static char NumPre = '$';
-
-static void Log(int Loud, const char *Format, ...) {
-   if (Loudness >= Loud) {
-      va_list AP; va_start(AP, Format), vfprintf(stderr, Format, AP), va_end(AP);
-   }
-}
-
-// Debugging support function, print opcode as octal and binary.
-static void ShowOp(char *Buf, size_t Max, int Op, char *Prefix = nullptr) {
-   if (Loudness > 1) {
-      uint8_t X = (Op >> 6)&3, Y = (Op >> 3)&7, Z = Op&7;
-      size_t N = strlen(Buf);
-      snprintf(Buf + N, Max - N, "%*c ", int(24 - strlen(Buf)), ';');
-      N = strlen(Buf);
-      snprintf(Buf + N, Max - N, "%02X: %d.%d.%d (%c%c.%c%c%c.%c%c%c)",
-         Op, X, Y, Z,
-         X&2? '1': '0', X&1? '1': '0', Y&4? '1': '0', Y&2? '1': '0', Y&1? '1': '0', Z&4? '1': '0', Z&2? '1': '0', Z&1? '1': '0'
-      );
-   }
-}
 
 // Calculate the length of an opcode.
 static int OpLen(uint16_t IP) {
@@ -310,7 +288,6 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
                   case 2: Gen("RES     %d,%s", Y, Rb[Z]); break;
                   case 3: Gen("SET     %d,%s", Y, Rb[Z]); break;
                }
-               if (Loudness > 1) ShowOp(Buf, BufN, Op); // Debug for 313 ⋯.
             break;
             case 2: Gen("OUT     ($%2.2X),A", Byte1); break;
             case 3: Gen("IN      A,($%2.2X)", Byte1); break;
@@ -414,7 +391,6 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
                      }
                      break;
                   }
-                  if (Loudness > 1) ShowOp(Buf, BufN, Op); // Debug info for 355 ⋯.
                break;
             // 335: IX, 375: IY.
                case 1: case 3: {
@@ -474,10 +450,8 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
                            break;
                            default: Gen("???"); break;
                         }
-                        if (Loudness > 1) ShowOp(Buf, BufN, Op); // Debug info for 335/375 313 ⋯.
                      break;
                   }
-                  if (Loudness > 1 && Prefix < 2) ShowOp(Buf, BufN, Op); // Debug info for 335/375 ⋯.
                }
                break;
             }
@@ -489,7 +463,6 @@ static void Disassemble(uint16_t IP, char *Buf, size_t BufN) {
       }
       break;
    }
-   if (Loudness > 1 && Prefix == 0) ShowOp(Buf, BufN, Op); // This debug info only for non-prefixed opcodes.
 }
 
 static void Usage(const char *Path) {
@@ -497,12 +470,11 @@ static void Usage(const char *Path) {
    for (char Ch; (Ch = *Path++) != '\0'; ) if (Ch == '/' || Ch == '\\') App = Path;
    printf(
       "Usage:\n"
-      "  %s [-fXX] [-oXXXX] [-p] [-r] [-v] [-x] <infile> [<outfile>]\n"
+      "  %s [-fXX] [-oXXXX] [-p] [-r] [-x] <InFile> [<OutFile>]\n"
       "    -fXX    fill unused memory, XX = 0x00 .. 0xff\n"
       "    -oXXXX  org XXXX = 0x0000 .. 0xffff\n"
       "    -p      parse program flow\n"
       "    -r      parse also rst and nmi\n"
-      "    -v      increase verbosity\n"
       "    -x      show hexdump\n",
       App
    );
@@ -559,7 +531,6 @@ static bool LoadBin(char *InFile, uint32_t Offset) {
       goto End1;
    }
    LoRAM = Offset, HiRAM = Offset + Size - 1;
-   Log(2, "Loaded %d data bytes from \"%s\" into RAM region [0x%04X...0x%04X]\n", Size, InFile, LoRAM, HiRAM);
 End2:
    Ok = true;
 End1:
@@ -627,7 +598,6 @@ int main(int AC, char *AV[]) {
             case 'p': DoParse = true, NumPre = 'L'; break;
          // Parse the program flow.
             case 'r': DoParseInt = true; break;
-            case 'v': Loudness++; break;
             case 'x': DoHex = true; break;
             default: Usage(AV[0]); return 1;
          }
@@ -693,18 +663,10 @@ bool HexIn::GetData(HexRecordT Type, bool Error) {
    static uint32_t HexDataN = 0;
    Error = Error || _Length < _LineN;
    if (Type == HexLineRec && !Error) {
-      Log(4, "IHEX addr: $%04X, data len: %d\n", HexAddress(), _Length);
       memcpy(Code + HexAddress(), _Line, _Length);
       if (HexAddress() < LoRAM) LoRAM = HexAddress();
       if (HexAddress() + _Length >= HiRAM) HiRAM = HexAddress() + _Length - 1;
       HexDataN += _Length;
-   } else if (Type == HexEndRec) {
-      Log(4, "IHEX EOF\n");
-      Log(1, "Loaded %d data bytes from hexfile into RAM region [0x%04X...0x%04X]\n", HexDataN, LoRAM, HiRAM);
-      if (HexDataN != HiRAM + 1 - LoRAM)
-         Log(1, "(size: %d Bytes)\n", HiRAM + 1 - LoRAM);
-      else
-         Log(1, "");
    }
    return !Error;
 }

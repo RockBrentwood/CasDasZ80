@@ -11,7 +11,6 @@ static int16_t GetOperand(CommandP &Cmd, int32_t *ValueP) {
    LastPatch = nullptr; // To be safe: reset the patch entry.
    *ValueP = 0;
    int16_t Type = Cmd->Type, Value = Cmd++->Value; // Get a value and type.
-   Log(2, "GetOperand( %d, %X, %d )\n", Type, Value, *ValueP);
    if (Type == OpL) {
       switch (LexC(Value)) {
       // PseudoOp; Mnemonic
@@ -63,7 +62,6 @@ static int16_t GetOperand(CommandP &Cmd, int32_t *ValueP) {
 
 // Test for an opcode.
 static void DoOpcode(CommandP &Cmd) {
-   Log(2, "DoOpcode( %X )\n", Cmd->Value);
    uint8_t *RamP = RAM + CurPC;
    int32_t Value1 = 0; PatchListP Patch1; int16_t Op1 = 0;
    int32_t Value2 = 0; PatchListP Patch2; int16_t Op2 = 0;
@@ -80,8 +78,6 @@ static void DoOpcode(CommandP &Cmd) {
          Op2 = GetOperand(Cmd, &Value2), Patch2 = LastPatch;
       }
    }
-// Helpful for debugging and enhancement.
-   Log(3, "Op0: 0x%08x, Op1: 0x%03x, Value1: 0x%08x, Op2: 0x%03x, Value2: 0x%08x\n", Op0, Op1, Value1, Op2, Value2);
    switch (Op0c) { // Opcode class.
    // in A,(P); out (P),A.
       case _POp:
@@ -537,7 +533,6 @@ static void DoOpcode(CommandP &Cmd) {
 static bool PassOver = false; // Ignore all lines till next "ENDIF" (this could be a stack for nesting support).
 
 static void DoPseudo(CommandP &Cmd) {
-   Log(2, "DoPseudo( %d, %X )\n", Cmd->Type, Cmd->Value);
    uint16_t PC = CurPC;
    switch (Cmd++->Value) { // All pseudo-opcodes
       case _db: case _dm:
@@ -609,7 +604,6 @@ static void DoPseudo(CommandP &Cmd) {
 
 // Compile a line into machine code.
 void CompileLine(void) {
-   Log(2, "CompileLine()\n");
    CommandP Cmd = CmdBuf;
    if (Cmd->Type == 0) return; // Empty line => done.
    if (Cmd->Type == SymL && !PassOver) { // The symbol is at the beginning, but not IF?

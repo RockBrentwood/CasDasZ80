@@ -40,7 +40,7 @@ void HexIn::HexInEnd() {
    Sum += Type + (_Address&0xffU) + ((_Address >> 8)&0xffU);
    for (const uint8_t *LineP = _Line; LineP != EndP; LineP++) Sum += *LineP;
    Sum = (~Sum + 1U) ^ *EndP; // *EndP is the received checksum
-   if (GetData(Type, (uint8_t)Sum)) {
+   if (GetData(Type, Sum != 0)) {
       if (Type == HexAddrRec) _Address &= 0xffffU, _Address |= (((HexAddressT)_Line[0]) << 24) | (((HexAddressT)_Line[1]) << 16);
 #ifndef HexFlatAddresses
       else if (Type == HexSegRec) _Segment = (HexSegmentT)((_Line[0] << 8) | _Line[1]);

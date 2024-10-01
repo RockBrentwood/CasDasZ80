@@ -256,18 +256,6 @@ void TokenizeLine(char *Line) {
       }
       Cmd->Type = Type, Cmd->Value = Value; // Copy into the command buffer.
       Cmd++;
-      if (Loudness >= 3) switch (Type) {
-         case BadL: Log(3, "BadL\n"); break;
-         case NumL: Log(3, "NumL:    %lX\n", Value); break;
-         case OpL:
-            if (LexC(Value) == _Lit)
-               Log(3, "OpL: '%c'\n", Value);
-            else
-               Log(3, "OpL: %lX\n", Value);
-         break;
-         case SymL: Log(3, "SymL: %s\n", Value); break;
-         case StrL: Log(3, "StrL: \"%s\"\n", (char *)Value); break;
-      }
    }
    Cmd->Type = BadL, Cmd->Value = 0; // Terminate the command buffer.
 }
