@@ -85,9 +85,9 @@ static int32_t GetExp0(CommandP &Cmd) {
    // Skip the operator: exclusive or.
       case '^': Cmd++, Value ^= GetExp2(Cmd); break;
    // Skip the operator: shift to the right.
-      case 0x120: Cmd++, Value >>= GetExp2(Cmd); break;
+      case '}': Cmd++, Value >>= GetExp2(Cmd); break;
    // Skip the operator: shift to the left.
-      case 0x121: Cmd++, Value <<= GetExp2(Cmd); break;
+      case '{': Cmd++, Value <<= GetExp2(Cmd); break;
       default: goto Break;
    }
 Break:

@@ -27,70 +27,55 @@ static const ShortSym Pseudo[] = {
    { _fill, "FILL", 0x0000 }
 };
 
-// Type:
-// 0x200 : in,out.
-// 0x201 : 1 byte opcode, no parameter.
-// 0x202 : 2 byte opcode, no parameter.
-// 0x203 : 2 byte opcode, (HL) required.
-// 0x204 : first parameter = bit number, second parameter = <ea> (bit,res,set).
-// 0x205 : im (one parameter: 0,1,2).
-// 0x206 : add,adc,sub,sbc,and,xor,or,cp.
-// 0x207 : inc, dec, like 0x206 with absolute address.
-// 0x208 : jp, call, jr (Warning! Different <ea>!)
-// 0x209 : ret (c or nothing).
-// 0x20a : rst (00,08,10,18,20,28,30,38).
-// 0x20b : djnz.
-// 0x20c : ex: (SP),Rw or DE,HL or AF,AF'.
-// 0x20d : ld.
-// 0x20e : push, pop: Rw.
-// 0x20f : rr,rl,rrc,rlc,sra,sla,srl.
+#define Mode1(Op) ((Op) << 8)
+#define Mode2(Op1,Op2) (((Op1) << 8) | (Op2))
 static const ShortSym Opcodes[] = {
-   { 0x206, "ADC", 0x88ce }, { 0x206, "ADD", 0x80c6 }, { 0x206, "AND", 0xa0e6 },
-   { 0x204, "BIT", 0xcb40 }, { 0x208, "CALL", 0xc4cd }, { 0x201, "CCF", 0x3f00 },
-   { 0x206, "CP", 0xb8fe }, { 0x202, "CPD", 0xeda9 }, { 0x202, "CPDR", 0xedb9 },
-   { 0x202, "CPI", 0xeda1 }, { 0x202, "CPIR", 0xedb1 }, { 0x201, "CPL", 0x2f00 },
-   { 0x201, "DAA", 0x2700 }, { 0x207, "DEC", 0x0500 }, { 0x201, "DI", 0xf300 },
-   { 0x20b, "DJNZ", 0x1000 }, { 0x201, "EI", 0xfb00 }, { 0x20c, "EX", 0xe3eb },
-   { 0x201, "EXX", 0xd900 }, { 0x201, "HALT", 0x7600 }, { 0x205, "IM", 0xed46 },
-   { 0x200, "IN", 0x40db }, { 0x207, "INC", 0x0400 }, { 0x202, "IND", 0xedaa },
-   { 0x202, "INDR", 0xedba }, { 0x202, "INI", 0xeda2 }, { 0x202, "INIR", 0xedb2 },
-   { 0x208, "JP", 0xc2c3 }, { 0x208, "JR", 0x2018 }, { 0x20d, "LD", 0x0000 },
-   { 0x202, "LDD", 0xeda8 }, { 0x202, "LDDR", 0xedb8 }, { 0x202, "LDI", 0xeda0 },
-   { 0x202, "LDIR", 0xedb0 }, { 0x202, "NEG", 0xed44 }, { 0x201, "NOP", 0x0000 },
-   { 0x206, "OR", 0xb0f6 }, { 0x202, "OTDR", 0xedbb }, { 0x202, "OTIR", 0xedb3 },
-   { 0x200, "OUT", 0x41d3 }, { 0x202, "OUTD", 0xedab }, { 0x202, "OUTI", 0xeda3 },
-   { 0x20e, "POP", 0xc1e1 }, { 0x20e, "PUSH", 0xc5e5 }, { 0x204, "RES", 0xcb80 },
-   { 0x209, "RET", 0xc0c9 }, { 0x202, "RETI", 0xed4d }, { 0x202, "RETN", 0xed45 },
-   { 0x20f, "RL", 0x1016 }, { 0x201, "RLA", 0x1700 }, { 0x20f, "RLC", 0x0016 },
-   { 0x201, "RLCA", 0x0700 }, { 0x203, "RLD", 0xed6f }, { 0x20f, "RR", 0x181e },
-   { 0x201, "RRA", 0x1f00 }, { 0x20f, "RRC", 0x080e }, { 0x201, "RRCA", 0x0f00 },
-   { 0x203, "RRD", 0xed67 }, { 0x20a, "RST", 0xc700 }, { 0x206, "SBC", 0x98de },
-   { 0x201, "SCF", 0x3700 }, { 0x204, "SET", 0xcbc0 }, { 0x20f, "SLA", 0x2026 },
-   { 0x20f, "SLL", 0x3036 }, { 0x20f, "SRA", 0x282e }, { 0x20f, "SRL", 0x383e },
-   { 0x206, "SUB", 0x90d6 }, { 0x206, "XOR", 0xa8ee }
+   { _AOp, "ADC", Mode2(0210,0316) }, { _AOp, "ADD", Mode2(0200,0306) }, { _AOp, "AND", Mode2(0240,0346) },
+   { _BitOp, "BIT", Mode2(0313,0100) }, { _RefOp, "CALL", Mode2(0304,0315) }, { _UnOp, "CCF", Mode1(0077) },
+   { _AOp, "CP", Mode2(0270,0376) }, { _BinOp, "CPD", Mode2(0355,0251) }, { _BinOp, "CPDR", Mode2(0355,0271) },
+   { _BinOp, "CPI", Mode2(0355,0241) }, { _BinOp, "CPIR", Mode2(0355,0261) }, { _UnOp, "CPL", Mode1(0057) },
+   { _UnOp, "DAA", Mode1(0047) }, { _IOp, "DEC", Mode1(0005) }, { _UnOp, "DI", Mode1(0363) },
+   { _djnz, "DJNZ", Mode1(0020) }, { _UnOp, "EI", Mode1(0373) }, { _ex, "EX", Mode2(0343,0353) },
+   { _UnOp, "EXX", Mode1(0331) }, { _UnOp, "HALT", Mode1(0166) }, { _im, "IM", Mode2(0355,0106) },
+   { _POp, "IN", Mode2(0100,0333) }, { _IOp, "INC", Mode1(0004) }, { _BinOp, "IND", Mode2(0355,0252) },
+   { _BinOp, "INDR", Mode2(0355,0272) }, { _BinOp, "INI", Mode2(0355,0242) }, { _BinOp, "INIR", Mode2(0355,0262) },
+   { _RefOp, "JP", Mode2(0302,0303) }, { _RefOp, "JR", Mode2(0040,0030) }, { _ld, "LD", Mode1(0000) },
+   { _BinOp, "LDD", Mode2(0355,0250) }, { _BinOp, "LDDR", Mode2(0355,0270) }, { _BinOp, "LDI", Mode2(0355,0240) },
+   { _BinOp, "LDIR", Mode2(0355,0260) }, { _BinOp, "NEG", Mode2(0355,0104) }, { _UnOp, "NOP", Mode1(0000) },
+   { _AOp, "OR", Mode2(0260,0366) }, { _BinOp, "OTDR", Mode2(0355,0273) }, { _BinOp, "OTIR", Mode2(0355,0263) },
+   { _POp, "OUT", Mode2(0101,0323) }, { _BinOp, "OUTD", Mode2(0355,0253) }, { _BinOp, "OUTI", Mode2(0355,0243) },
+   { _StOp, "POP", Mode2(0301,0341) }, { _StOp, "PUSH", Mode2(0305,0345) }, { _BitOp, "RES", Mode2(0313,0200) },
+   { _ret, "RET", Mode2(0300,0311) }, { _BinOp, "RETI", Mode2(0355,0115) }, { _BinOp, "RETN", Mode2(0355,0105) },
+   { _ShOp, "RL", Mode2(0020,0026) }, { _UnOp, "RLA", Mode1(0027) }, { _ShOp, "RLC", Mode2(0000,0026) },
+   { _UnOp, "RLCA", Mode1(0007) }, { _OpHL, "RLD", Mode2(0355,0157) }, { _ShOp, "RR", Mode2(0030,0036) },
+   { _UnOp, "RRA", Mode1(0037) }, { _ShOp, "RRC", Mode2(0010,0016) }, { _UnOp, "RRCA", Mode1(0017) },
+   { _OpHL, "RRD", Mode2(0355,0147) }, { _rst, "RST", Mode1(0307) }, { _AOp, "SBC", Mode2(0230,0336) },
+   { _UnOp, "SCF", Mode1(0067) }, { _BitOp, "SET", Mode2(0313,0300) }, { _ShOp, "SLA", Mode2(0040,0046) },
+   { _ShOp, "SLL", Mode2(0060,0066) }, { _ShOp, "SRA", Mode2(0050,0056) }, { _ShOp, "SRL", Mode2(0070,0076) },
+   { _AOp, "SUB", Mode2(0220,0326) }, { _AOp, "XOR", Mode2(0250,0356) }
 };
 
 static const ShortSym Register[] = {
-   { 0x307, "A", 0x0000 }, { 0x323, "AF", 0x0000 }, // 00…07: B,C,D,E,H,L,(HL),A
-   { 0x300, "B", 0x0000 }, { 0x310, "BC", 0x0000 }, // 10…13: BC,DE,HL,SP
-   { 0x301, "C", 0x0000 }, { 0x302, "D", 0x0000 },  //    23:         ,AF
-   { 0x311, "DE", 0x0000 }, { 0x303, "E", 0x0000 }, // 30…31: IX,IY
-   { 0x304, "H", 0x0000 }, { 0x312, "HL", 0x0000 }, // 40…41: R,I
-   { 0x341, "I", 0x0000 }, { 0x330, "IX", 0x0000 }, // 54…55: X,HX
-   { 0x331, "IY", 0x0000 }, { 0x305, "L", 0x0000 }, // 64…65: Y,HY
-   { 0x340, "R", 0x0000 }, { 0x313, "SP", 0x0000 },
-   { 0x355, "X", 0x0000 }, { 0x354, "HX", 0x0000 },
-   { 0x365, "Y", 0x0000 }, { 0x364, "HY", 0x0000 }
+   { _A, "A", 0x0000 }, { _AF, "AF", 0x0000 },
+   { _B, "B", 0x0000 }, { _BC, "BC", 0x0000 },
+   { _C, "C", 0x0000 }, { _D, "D", 0x0000 },
+   { _DE, "DE", 0x0000 }, { _E, "E", 0x0000 },
+   { _H, "H", 0x0000 }, { _HL, "HL", 0x0000 },
+   { _I, "I", 0x0000 }, { _IX, "IX", 0x0000 },
+   { _IY, "IY", 0x0000 }, { _L, "L", 0x0000 },
+   { _R, "R", 0x0000 }, { _SP, "SP", 0x0000 },
+   { _LX, "X", 0x0000 }, { _HX, "HX", 0x0000 },
+   { _LY, "Y", 0x0000 }, { _HY, "HY", 0x0000 }
 };
 
 static const ShortSym Conditions[] = {
 #if 0
-   { 0x403, "C", 0x0000 }, // Condition C = Register C!
+   { _cC, "C", 0x0000 }, // Condition C = Register C!
 #endif
-   { 0x407, "M", 0x0000 },
-   { 0x402, "NC", 0x0000 }, { 0x400, "NZ", 0x0000 },
-   { 0x406, "P", 0x0000 }, { 0x405, "PE", 0x0000 },
-   { 0x404, "PO", 0x0000 }, { 0x401, "Z", 0x0000 }
+   { _cM, "M", 0x0000 },
+   { _cNC, "NC", 0x0000 }, { _cNZ, "NZ", 0x0000 },
+   { _cP, "P", 0x0000 }, { _cPE, "PE", 0x0000 },
+   { _cPO, "PO", 0x0000 }, { _cZ, "Z", 0x0000 }
 };
 
 struct TokenTable {
@@ -227,7 +212,7 @@ void TokenizeLine(char *Line) {
                // An opcode and parameter, ID.
                   Type = OpL, Value = Sym->Value;
                // Only pseudo opcodes.
-                  if (Dot && (Value < 0x100 || Value >= 0x200)) Error("opcodes can't start with '.'");
+                  if (Dot && LexC(Value) != _OpP) Error("opcodes can't start with '.'");
                }
             } else Error("symbols can't start with '$' or digits");
          }
@@ -235,10 +220,10 @@ void TokenizeLine(char *Line) {
          Type = OpL;
          switch (Ch) {
             case '>':
-               if (*Line == '>') Value = 0x120, Line++; // '>>' recognized.
+               if (*Line == '>') Value = '}', Line++; // ">>" recognized and punned as '}'.
             break;
             case '<':
-               if (*Line == '<') Value = 0x121, Line++; // '<<' recognized.
+               if (*Line == '<') Value = '{', Line++; // "<<" recognized and punned as '{'.
             break;
          // '=' matches EQU
             case '=': Value = _equ; break;
@@ -275,7 +260,7 @@ void TokenizeLine(char *Line) {
          case BadL: Log(3, "BadL\n"); break;
          case NumL: Log(3, "NumL:    %lX\n", Value); break;
          case OpL:
-            if (Value < 0x100)
+            if (LexC(Value) == _Lit)
                Log(3, "OpL: '%c'\n", Value);
             else
                Log(3, "OpL: %lX\n", Value);

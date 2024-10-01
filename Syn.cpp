@@ -13,37 +13,36 @@ static int16_t GetOperand(CommandP &Cmd, int32_t *ValueP) {
    int16_t Type = Cmd->Type, Value = Cmd++->Value; // Get a value and type.
    Log(2, "GetOperand( %d, %X, %d )\n", Type, Value, *ValueP);
    if (Type == OpL) {
-      if (Value >= 0x300 && Value <= 0x4ff) {
-      // AF': skip "'" and return AF'.
-         if (Value == 0x323 && Cmd->Type == OpL && Cmd->Value == '\'') Cmd++, Value = 0x324;
-      // Register or condition.
+      switch (LexC(Value)) {
+      // PseudoOp; Mnemonic
+         case _OpP: case _Op: Error("Illegal operand");
+      // Register; Condition
+         case _Reg: case _Cc:
+         // AF': skip "'" and return AF'.
+            if (Value == _AF && Cmd->Type == OpL && Cmd->Value == '\'') Cmd++, Value = _AFx;
          return Value;
       }
-      if (Value >= 0x100 && Value <= 0x2ff) Error("Illegal operand"); // An opcode.
       if (Value == '(') { // Indirect addressing?
-         Type = Cmd->Type;
-         int16_t SValue = Cmd++->Value; // Get a value and type.
-         if (Type == OpL) {
-            if ((SValue&0xff0) == 0x310 || SValue == 0x301) { // Register.
+         int16_t SType = Cmd->Type, SValue = Cmd++->Value; // Get a value and type.
+         if (SType == OpL) {
+            if (LexT(SValue) == _Rw || SValue == _C) { // Register.
                Type = Cmd->Type, Value = Cmd++->Value; // Get a value and type.
-               if (Type == OpL && Value == ')') {
-                  if (SValue == 0x312) return 0x306; // (HL): to combine them easier.
-                  return SValue + 0x200; // (C),(BC),(DE),(SP).
-               }
-               Error("Closing bracket missing after (BC,(DE,(HL or (SP");
+            // (C);(BC);(DE);(HL);(SP); (HL) is handled separately to combine them easier.
+               if (Type == OpL && Value == ')') return SValue == _HL? _pHL: _p(SValue);
+               else Error("Closing bracket missing after (BC, (DE, (HL or (SP");
             }
-            if ((SValue&0xff0) == 0x330) { // IX,IY
+            if (LexT(SValue) == _Rx) { // IX,IY
                if (Cmd->Type == OpL) { // Does an operator follow?
                   Value = Cmd->Value;
                   if (Value == '+' || Value == '-') {
                      *ValueP = GetExp(Cmd);
                      Type = Cmd->Type, Value = Cmd++->Value; // Get a bracket.
-                     if (Type == OpL && Value == ')') return SValue + 0x300; // (IX+Ds); (IY+Ds).
+                     if (Type == OpL && Value == ')') return _x(SValue); // (IX+Ds); (IY+Ds).
                      Error("Closing bracket missing after (IX or (IY");
                   } else {
                      if (Type == OpL && Value == ')') {
                         Cmd++; // Skip the bracket.
-                        return SValue + 0x200; // (IX); (IY).
+                        return _p(SValue); // (IX);(IY).
                      }
                      Error("Closing bracket missing after (IX or (IY");
                   }
@@ -53,13 +52,13 @@ static int16_t GetOperand(CommandP &Cmd, int32_t *ValueP) {
       // Parse an expression, starting one token back.
          Cmd--, *ValueP = GetExp(Cmd);
          Type = Cmd->Type, Value = Cmd++->Value; // Get the closing bracket.
-         if (Type == OpL && Value == ')') return 0x280; // (Addr).
-         Error("Closing bracket missing after (adr)");
+         if (Type == OpL && Value == ')') return _Aw; // (Addr).
+         Error("Closing bracket missing after (Addr)");
       }
    }
 // Parse an expression, starting one token back.
    Cmd--, *ValueP = GetExp(Cmd);
-   return 0x281; // Return an address.
+   return _Dw; // Return an address.
 }
 
 // Test for an opcode.
@@ -70,7 +69,8 @@ static void DoOpcode(CommandP &Cmd) {
    int32_t Value2 = 0; PatchListP Patch2; int16_t Op2 = 0;
    CheckPC(CurPC); // Detect min, max and overflow (wrap around).
    uint32_t Op0 = Cmd++->Value; // Opcode.
-   uint8_t Op0a = Op0 >> 24, Op0b = Op0 >> 16, Op0c = Op0&0xff;
+   uint8_t Op0a = Op0 >> 24, Op0b = Op0 >> 16;
+   uint16_t Op0c = Op0&0xffff;
    if (Cmd->Type != 0) {
    // Get the first operand and a patch pointer for it.
       Op1 = GetOperand(Cmd, &Value1), Patch1 = LastPatch;
@@ -83,71 +83,70 @@ static void DoOpcode(CommandP &Cmd) {
 // Helpful for debugging and enhancement.
    Log(3, "Op0: 0x%08x, Op1: 0x%03x, Value1: 0x%08x, Op2: 0x%03x, Value2: 0x%08x\n", Op0, Op1, Value1, Op2, Value2);
    switch (Op0c) { // Opcode class.
-   // in/out.
-      case 0x00:
+   // in A,(P); out (P),A.
+      case _POp:
          if (Op0a&1) { // out?
          // Swap operands.
             int32_t Op = Op1; Op1 = Op2, Op2 = Op;
             int32_t Value = Value1; Value1 = Value2, Value2 = Value;
             PatchListP Patch = Patch1; Patch1 = Patch2, Patch2 = Patch;
          }
-         if ((Op1&0xff0) == 0x300 && Op2 == 0x501) { // in Rd,(C) or out (C),Rs.
-            if (Op1 == 0x306) Error("IN (HL),(C) or OUT (C),(HL): invalid combinations");
-            else *RamP++ = 0355, *RamP++ = Op0a | ((Op1&7) << 3);
-         } else if (Op1 == 0x307 && Op2 == 0x280) { // in A,(Pb) or out (Pb),A.
+         if (LexT(Op1) == _Rb && Op2 == _p(_C)) { // in Rd,(C) or out (C),Rs.
+            if (Op1 == _pHL) Error("IN (HL),(C) or OUT (C),(HL): invalid combinations");
+            else *RamP++ = 0355, *RamP++ = Op0a | (LexN(Op1) << 3);
+         } else if (Op1 == _A && Op2 == _Aw) { // in A,(Pb) or out (Pb),A.
             *RamP++ = Op0b;
          // Undefined expression: add a single byte and end processing.
             if (Patch2 != nullptr) Patch2->Type = 0, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
             *RamP++ = Value2;
          }
       // Undocumented: in (C).
-         else if (!(Op0a&1) && Op1 == 0x501 && Op2 == 0) *RamP++ = 0355, *RamP++ = 0160;
+         else if (!(Op0a&1) && Op1 == _p(_C) && Op2 == 0) *RamP++ = 0355, *RamP++ = 0160;
       // Undocumented: out (C),0.
-         else if ((Op0a&1) && Op1 == 0x281 && Op2 == 0x501 && Value1 == 0) *RamP++ = 0355, *RamP++ = 0161;
+         else if ((Op0a&1) && Op1 == _Dw && Op2 == _p(_C) && Value1 == 0) *RamP++ = 0355, *RamP++ = 0161;
          else Error("operands not allowed for IN/OUT");
       break;
-   // One byte opcode without parameter.
-      case 0x01:
+   // one byte opcode, no parameter.
+      case _UnOp:
       // Operands provided: error.
          if (Op1 != 0 || Op2 != 0) Error("operands not allowed"); else *RamP++ = Op0a;
       break;
-   // Two byte opcode without parameter.
-      case 0x02:
+   // two byte opcode, no parameter.
+      case _BinOp:
       // Operands provided: error.
          if (Op1 != 0 || Op2 != 0) Error("operands not allowed"); else *RamP++ = Op0a, *RamP++ = Op0b;
       break;
-   // rrd (HL) or rld (HL).
-      case 0x03:
-         if (Op1 != 0x306 && Op1 != 0 || Op2 != 0) Error("Illegal Operand"); else *RamP++ = Op0a, *RamP++ = Op0b;
+   // two byte opcode, (HL) required; i.e. rrd (HL); rld (HL).
+      case _OpHL:
+         if (Op1 != _pHL && Op1 != 0 || Op2 != 0) Error("Illegal Operand"); else *RamP++ = Op0a, *RamP++ = Op0b;
       break;
-   // bit/res/set: First parameter = bit number, second parameter = Aw.
-      case 0x04:
-         if (Op1 != 0x281 || Value1 < 0 || Value1 > 7) Error("1st operand has to be between 0 and 7");
-      // A,B,C,D,E,H,L,(HL).
-         else if ((Op2&0xff0) == 0x300) *RamP++ = Op0a, *RamP++ = Op0b | (Value1 << 3) | Op2&7;
-      // (IX+Ds); (IY+Ds).
-         else if ((Op2&0xff0) == 0x630) {
+   // bit n,Rb; res n,Rb; set n,Rb
+      case _BitOp:
+         if (Op1 != _Dw || Value1 < 0 || Value1 > 7) Error("1st operand has to be between 0 and 7");
+      // A;B;C;D;E;H;L;(HL).
+         else if (LexT(Op2) == _Rb) *RamP++ = Op0a, *RamP++ = Op0b | (Value1 << 3) | LexN(Op2);
+      // (IX+Ds);(IY+Ds).
+         else if (LexT(Op2) == _x(_Rx)) {
             *RamP++ = Op2&1? 0375: 0335, *RamP++ = Op0a;
          // Undefined expression: add a single byte and end processing.
             if (Patch2 != nullptr) Patch2->Type = 0, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
             *RamP++ = Value2, *RamP++ = Op0b | (Value1 << 3) | 6;
          } else Error("2nd operand wrong");
       break;
-   // im (one parameter: 0,1,2).
-      case 0x05:
-         if (Op1 != 0x281 || Op2) Error("operand wrong");
+   // im n (n: 0,1,2).
+      case _im:
+         if (Op1 != _Dw || Op2 != 0) Error("operand wrong");
          else if (Value1 < 0 || Value1 > 2) Error("Operand value has to be 0, 1 or 2");
          else {
             if (Value1 > 0) Value1++;
             *RamP++ = Op0a, *RamP++ = Op0b | ((Value1&7) << 3);
          }
       break;
-   // add,adc,sub,sbc,and,xor,or,cp.
-      case 0x06: switch (Op1) {
-      // HL
-         case 0x312:
-         // BC,DE,HL,SP
-            if (Op2 >= 0x310 && Op2 <= 0x313) switch (Op0a) {
+   // AOp D,S (AOp: add,adc,sub,sbc,and,xor,or,cp).
+      case _AOp: switch (Op1) {
+         case _HL:
+         // BC;DE;HL;SP
+            if (LexT(Op2) == _Rw) switch (Op0a) {
             // add
                case 0200: *RamP++ = 0011 | ((Op2&3) << 4); break;
             // adc
@@ -157,45 +156,40 @@ static void DoOpcode(CommandP &Cmd) {
                default: Error("Opcode with this <ea> not allowed");
             } else Error("Expecting a double-register");
          break;
-      // IX; IY
-         case 0x330: case 0x331:
-         // Only add IX/IY,RR.
+         case _IX: case _IY:
+         // Only add Rx,Rw
             if (Op0a != 0200) Error("Only ADD IX,[BC,DE,IX,SP] or ADD IY,[BC,DE,IY,SP] are possible");
             switch (Op2) {
-            // BC
-               case 0x310: *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0011; break;
-            // DE
-               case 0x311: *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0031; break;
-            // IX; IY
-               case 0x330: case 0x331:
+               case _BC: *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0011; break;
+               case _DE: *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0031; break;
+               case _IX: case _IY:
                   if (Op1 == Op2) *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0051;
                   else Error("Only ADD IX,IY or ADD IY,IY are possible");
                break;
-            // SP
-               case 0x313: *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0071; break;
+               case _SP: *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0071; break;
                default: Error("Opcode with this <ea> not allowed");
             }
          break;
          default:
          // Accumulator: shift the second operand to the beginning.
-            if (Op1 == 0x307 && Op2 != 0) Op1 = Op2, Value1 = Value2, Patch1 = Patch2, Patch2 = nullptr;
-            switch (Op1&0xff0) {
-            // X,HX.
-               case 0x350: *RamP++ = 0335, *RamP++ = Op0a | Op1&7; break;
-            // Y,HY.
-               case 0x360: *RamP++ = 0375, *RamP++ = Op0a | Op1&7; break;
-            // A,B,C,D,E,H,L,(HL).
-               case 0x300: *RamP++ = Op0a | Op1&7; break;
-            // (IX+Ds); (IY+Ds).
-               case 0x630:
+            if (Op1 == _A && Op2 != 0) Op1 = Op2, Value1 = Value2, Patch1 = Patch2, Patch2 = nullptr;
+            switch (LexT(Op1)) {
+            // LX;HX.
+               case _Xb: *RamP++ = 0335, *RamP++ = Op0a | LexN(Op1); break;
+            // LY;HY.
+               case _Yb: *RamP++ = 0375, *RamP++ = Op0a | LexN(Op1); break;
+            // A;B;C;D;E;H;L;(HL).
+               case _Rb: *RamP++ = Op0a | LexN(Op1); break;
+            // (IX+Ds);(IY+Ds).
+               case _x(_Rx):
                   *RamP++ = Op1&1? 0375: 0335, *RamP++ = Op0a | 6;
                // Expression undefined: add a single byte and end processing.
                   if (Patch1 != nullptr) Patch1->Type = 0, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
                   *RamP++ = Value1;
                break;
-            // n
-               case 0x280:
-                  if (Op1 == 0x281) {
+            // (Aw);Dw
+               case _W:
+                  if (Op1 == _Dw) {
                      *RamP++ = Op0b;
                   // Expression undefined: add a single byte and end processing.
                      if (Patch1 != nullptr) Patch1->Type = 0, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
@@ -207,13 +201,13 @@ static void DoOpcode(CommandP &Cmd) {
       // break; // (@)?
       }
       break;
-   // inc, dec, like 0x06 without absolute address.
-      case 0x07:
+   // IOp D (IOp: inc,dec), like case 0x06 with absolute address.
+      case _IOp:
          if (Op2 != 0) Error("2nd operand not allowed");
-      // A,B,C,D,E,H,L,(HL).
-         if ((Op1&0xff0) == 0x300) *RamP++ = Op0a | ((Op1&7) << 3);
-      // (IX+Ds); (IY+Ds).
-         else if ((Op1&0xff0) == 0x630) {
+      // A;B;C;D;E;H;L;(HL).
+         if (LexT(Op1) == _Rb) *RamP++ = Op0a | (LexN(Op1) << 3);
+      // (IX+Ds);(IY+Ds).
+         else if (LexT(Op1) == _x(_Rx)) {
             *RamP++ = Op1&1? 0375: 0335, *RamP++ = Op0a | 060;
          // Expression undefined: add a single byte and end processing.
             if (Patch1 != nullptr) Patch1->Type = 0, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
@@ -221,78 +215,68 @@ static void DoOpcode(CommandP &Cmd) {
          } else {
             bool DecFlag = Op0a&1; // true: dec, false: inc.
             switch (Op1) {
-            // HX
-               case 0x354: *RamP++ = 0335, *RamP++ = DecFlag? 0045: 0044; break;
-            // X
-               case 0x355: *RamP++ = 0335, *RamP++ = DecFlag? 0055: 0054; break;
-            // HY
-               case 0x364: *RamP++ = 0375, *RamP++ = DecFlag? 0045: 0044; break;
-            // Y
-               case 0x365: *RamP++ = 0375, *RamP++ = DecFlag? 0055: 0054; break;
-            // BC
-               case 0x310: *RamP++ = DecFlag? 0013: 0003; break;
-            // DE
-               case 0x311: *RamP++ = DecFlag? 0033: 0023; break;
-            // HL
-               case 0x312: *RamP++ = DecFlag? 0053: 0043; break;
-            // HL
-               case 0x313: *RamP++ = DecFlag? 0073: 0063; break;
-            // IX
-               case 0x330: *RamP++ = 0335, *RamP++ = DecFlag? 0053: 0043; break;
-            // IY
-               case 0x331: *RamP++ = 0375, *RamP++ = DecFlag? 0053: 0043; break;
+               case _HX: *RamP++ = 0335, *RamP++ = DecFlag? 0045: 0044; break;
+               case _LX: *RamP++ = 0335, *RamP++ = DecFlag? 0055: 0054; break;
+               case _HY: *RamP++ = 0375, *RamP++ = DecFlag? 0045: 0044; break;
+               case _LY: *RamP++ = 0375, *RamP++ = DecFlag? 0055: 0054; break;
+               case _BC: *RamP++ = DecFlag? 0013: 0003; break;
+               case _DE: *RamP++ = DecFlag? 0033: 0023; break;
+               case _HL: *RamP++ = DecFlag? 0053: 0043; break;
+               case _SP: *RamP++ = DecFlag? 0073: 0063; break;
+               case _IX: *RamP++ = 0335, *RamP++ = DecFlag? 0053: 0043; break;
+               case _IY: *RamP++ = 0375, *RamP++ = DecFlag? 0053: 0043; break;
                default: Error("Addressing mode not allowed");
             }
          }
       break;
-   // jp, call, jr (Warning! Different Aw!)
-      case 0x08:
-         if (Op1 == 0x301) Op1 = 0x403; // Convert register 'C' into condition 'C'.
+   // jp [Cc,]Aw; call [Cc,]Aw; jr [Cc,]Js
+      case _RefOp:
+         if (Op1 == _C) Op1 = _cC; // Convert register 'C' into condition 'C'.
          switch (Op0a) {
-         // jp
+         // jp [Cc,]Aw
             case 0302:
-               if (Op1 >= 0x400 && Op1 <= 0x4ff && Op2 == 0x281) { // Cc,Addr
-                  *RamP++ = Op0a | ((Op1&7) << 3);
+               if (LexC(Op1) == _Cc && Op2 == _Dw) { // jp Cc,Aw
+                  *RamP++ = Op0a | (LexN(Op1) << 3);
                // Expression undefined: add two bytes and end processing.
                   if (Patch2 != nullptr) Patch2->Type = 1, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
                   *RamP++ = Value2, *RamP++ = Value2 >> 8;
                }
             // jp (HL)
-               else if (Op1 == 0x306 && Op2 == 0) *RamP++ = 0351;
+               else if (Op1 == _pHL && Op2 == 0) *RamP++ = 0351;
             // jp (IX)
-               else if (Op1 == 0x530 && Op2 == 0) *RamP++ = 0335, *RamP++ = 0351;
+               else if (Op1 == _p(_IX) && Op2 == 0) *RamP++ = 0335, *RamP++ = 0351;
             // jp (IY)
-               else if (Op1 == 0x531 && Op2 == 0) *RamP++ = 0375, *RamP++ = 0351;
-            // jp Js
-               else if (Op1 == 0x281 || Op2 == 0) {
+               else if (Op1 == _p(_IY) && Op2 == 0) *RamP++ = 0375, *RamP++ = 0351;
+            // jp Aw
+               else if (Op1 == _Dw && Op2 == 0) {
                   *RamP++ = Op0b;
                // Expression undefined: add two bytes and end processing.
                   if (Patch1 != nullptr) Patch1->Type = 1, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
                   *RamP++ = Value1, *RamP++ = Value1 >> 8;
                } else Error("1st operand wrong");
             break;
-         // jr
+         // jr [Cc,]Js; jr Aw
             case 0040:
-               if (Op1 >= 0x400 && Op1 <= 0x403 && Op2 == 0x281) { // Cc,Js
-                  *RamP++ = Op0a | ((Op1&7) << 3);
+               if (IsCc0(Op1) && Op2 == _Dw) { // jr Cc,Js; (Cc: NZ;Z;NC;C)
+                  *RamP++ = Op0a | (LexN(Op1) << 3);
                // Expression undefined: add a PC-relative byte and end processing.
                   if (Patch2 != nullptr) Patch2->Type = 2, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
                   *RamP = uint8_t(Value2 - (RamP - RAM) - 1), RamP++;
-               } else if (Op1 == 0x281 && Op2 == 0) { // jr Aw
+               } else if (Op1 == _Dw && Op2 == 0) { // jr Aw
                   *RamP++ = Op0b;
                // Expression undefined: add a PC-relative byte and end processing.
                   if (Patch1 != nullptr) Patch1->Type = 2, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
                   *RamP = uint8_t(Value1 - (RamP - RAM) - 1), RamP++;
                } else Error("Condition not allowed");
             break;
-         // call
+         // call [Cc,]Js; call Aw
             case 0304:
-               if (Op1 >= 0x400 && Op1 <= 0x4ff && Op2 == 0x281) { // Cc,Js
-                  *RamP++ = Op0a | ((Op1&7) << 3);
+               if (LexC(Op1) == _Cc && Op2 == _Dw) { // call Cc,Js
+                  *RamP++ = Op0a | (LexN(Op1) << 3);
                // Expression undefined: add two bytes and end processing.
                   if (Patch2 != nullptr) Patch2->Type = 1, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
                   *RamP++ = Value2, *RamP++ = Value2 >> 8;
-               } else if (Op1 == 0x281 && Op2 == 0) { // call Aw
+               } else if (Op1 == _Dw && Op2 == 0) { // call Aw
                   *RamP++ = Op0b;
                // Expression undefined: add two bytes and end processing.
                   if (Patch1 != nullptr) Patch1->Type = 1, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
@@ -302,21 +286,22 @@ static void DoOpcode(CommandP &Cmd) {
             default: Error("opcode table has a bug");
          }
       break;
-      case 0x09:
+   // ret [Cc]
+      case _ret:
       // ret error.
          if (Op2 != 0) Error("Too many operands");
       // No condition given: use the normal opcode.
          else if (Op1 == 0) *RamP++ = Op0b;
          else {
-            if (Op1 == 0x301) Op1 = 0x403; // Convert register 'C' into condition 'C'.
-            if ((Op1&0xf00) != 0x400) Error("Wrong Operand");
-            else *RamP++ = Op0a | ((Op1&7) << 3);
+            if (Op1 == _C) Op1 = _cC; // Convert register 'C' into condition 'C'.
+            if (LexC(Op1) != _Cc) Error("Wrong Operand");
+            else *RamP++ = Op0a | (LexN(Op1) << 3);
          }
       break;
-   // rst (00,08,10,18,20,28,30,38).
-      case 0x0a:
+   // rst n (n: 00,08,10,18,20,28,30,38).
+      case _rst:
          if (Op2 != 0) Error("Too many operands");
-         else if (Op1 == 0x281) { // n
+         else if (Op1 == _Dw) { // n
             int16_t n = -1;
             switch (Value1) {
                case 0: n = 000; break;
@@ -332,126 +317,123 @@ static void DoOpcode(CommandP &Cmd) {
             if (n >= 0) *RamP++ = Op0a | n;
          } else Error("Addressing mode not allowed");
       break;
-   // djnz
-      case 0x0b:
+   // djnz Js.
+      case _djnz:
          *RamP++ = Op0a;
       // Expression undefined: add a PC-relative byte and end processing.
          if (Patch1 != nullptr) Patch1->Type = 2, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
          *RamP = uint8_t(Value1 - (RamP - RAM) - 1), RamP++; // Relocate.
       break;
-   // ex: (SP),Rw or DE,HL or AF,AF'
-      case 0x0c:
+   // ex (SP),Rw; ex DE,HL; ex AF,AF'.
+      case _ex:
       // ex DE,HL
-         if (Op1 == 0x311 && Op2 == 0x312) *RamP++ = 0353;
+         if (Op1 == _DE && Op2 == _HL) *RamP++ = 0353;
       // ex AF,AF'
-         else if (Op1 == 0x323 && Op2 == 0x324) *RamP++ = 0010;
+         else if (Op1 == _AF && Op2 == _AFx) *RamP++ = 0010;
       // ex (SP),HL
-         else if (Op1 == 0x513 && Op2 == 0x312) *RamP++ = 0343;
+         else if (Op1 == _p(_SP) && Op2 == _HL) *RamP++ = 0343;
       // ex (SP),IX
-         else if (Op1 == 0x513 && Op2 == 0x330) *RamP++ = 0335, *RamP++ = 0343;
+         else if (Op1 == _p(_SP) && Op2 == _IX) *RamP++ = 0335, *RamP++ = 0343;
       // ex (SP),IY
-         else if (Op1 == 0x513 && Op2 == 0x331) *RamP++ = 0375, *RamP++ = 0343;
+         else if (Op1 == _p(_SP) && Op2 == _IY) *RamP++ = 0375, *RamP++ = 0343;
          else Error("Operand combination not allowed with EX");
       break;
-   // ld
-      case 0x0d:
+   // ld D,S.
+      case _ld:
          if (Op1 == 0 || Op2 == 0) Error("Operand missing");
          else {
             uint8_t FirstByte = 0;
             switch (Op1) {
-            // ld (IX),; ld (IY),
-               case 0x530: case 0x531:
-                  Op1 = Op1 == 0x530? 0x356: 0x366;
+            // ld (IX),⋯; ld (IY),⋯
+               case _p(_IX): case _p(_IY):
+                  Op1 = Op1 == _p(_IX)? _pIX: _pIY;
             // HX; X; HY; Y
-               case 0x354: case 0x355: case 0x364: case 0x365:
-                  *RamP++ = FirstByte = (Op1&0xff0) == 0x350? 0335: 0375;
-                  Op1 &= 0xf0f; // Remap H and L.
+               case _HX: case _LX: case _HY: case _LY:
+                  *RamP++ = FirstByte = LexT(Op1) == _Xb? 0335: 0375;
+                  Op1 &= ~0xf0; // Remap H and L.
             // B; C; D; E; H; L; (HL); A
-               case 0x300: case 0x301: case 0x302: case 0x303: case 0x304: case 0x305: case 0x306: case 0x307: switch (Op2&0xff0) {
-               // ld Aw,(IX), or ld Aw,(IY)
-                  case 0x530:
-                     Op2 = Op2 == 0x530? 0x356: 0x366;
+               case _B: case _C: case _D: case _E: case _H: case _L: case _pHL: case _A: switch (LexT(Op2)) {
+               // ld Aw,(IX); ld Aw,(IY)
+                  case _p(_Rx):
+                     Op2 = Op2 == _p(_IX)? _pIX: _pIY;
                // X,HX; Y,HY
-                  case 0x350: case 0x360: {
-                     bool Flag = (Op2&0xff0) == 0x350;
+                  case _Xb: case _Yb: {
+                     bool IsXb = LexT(Op2) == _Xb;
                      switch (FirstByte) {
                      // IX
                         case 0335:
-                           if (!Flag) Error("IX,IY: invalid combination");
+                           if (!IsXb) Error("IX,IY: invalid combination");
                         break;
                      // IY
                         case 0375:
-                           if (Flag) Error("IY,IX: invalid combination");
+                           if (IsXb) Error("IY,IX: invalid combination");
                         break;
                      // Nothing yet.
-                        default: *RamP++ = Flag? 0335: 0375; break;
+                        default: *RamP++ = IsXb? 0335: 0375; break;
                      }
-                     Op2 &= 0xf0f; // Remap H and L.
+                     Op2 &= ~0xf0; // Remap H and L.
                   }
-               // B,C,D,E,H,L,(HL),A
-                  case 0x300: *RamP++ = 0100 | ((Op1&7) << 3) | Op2&7; break;
-               // (BC),(DE),(SP)
-                  case 0x510:
-                     if (Op1 == 0x307) {
-                        if (Op2 == 0x510) *RamP++ = 0012;
-                        else if (Op2 == 0x511) *RamP++ = 0032;
+               // B;C;D;E;H;L;(HL);A
+                  case _Rb: *RamP++ = 0100 | (LexN(Op1) << 3) | LexN(Op2); break;
+               // (BC);(DE);(SP)
+                  case _p(_Rw):
+                     if (Op1 == _A) {
+                        if (Op2 == _p(_BC)) *RamP++ = 0012;
+                        else if (Op2 == _p(_DE)) *RamP++ = 0032;
                         else Error("(SP) not allowed");
                      } else Error("Only LD A,(BC) or LD A,(DE) allowed");
                   break;
-               // (IX+Ds), (IY+Ds)
-                  case 0x630:
-                     if (Op1 != 0x306) { // (HL)
-                        *RamP++ = Op2&1? 0375: 0335, *RamP++ = 0106 | ((Op1&7) << 3);
+               // (IX+Ds);(IY+Ds)
+                  case _x(_Rx):
+                     if (Op1 != _pHL) { // (HL)
+                        *RamP++ = Op2&1? 0375: 0335, *RamP++ = 0106 | (LexN(Op1) << 3);
                      // Expression undefined: add a single byte and end processing.
                         if (Patch2 != nullptr) Patch2->Type = 0, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
                         *RamP++ = Value2;
                      } else Error("LD (HL),(IX/IY+Ds) not allowed");
                   break;
-               // (n), n
-                  case 0x280:
-                     if (Op2 == 0x281) {
-                        *RamP++ = 0006 | ((Op1&7) << 3);
+               // (Aw);Dw
+                  case _W:
+                     if (Op2 == _Dw) {
+                        *RamP++ = 0006 | (LexN(Op1) << 3);
                      // Expression undefined: add a single byte and end processing.
                         if (Patch2 != nullptr) Patch2->Type = 0, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
                         *RamP++ = Value2;
-                     } else if (Op1 == 0x307) {
+                     } else if (Op1 == _A) {
                         *RamP++ = 0072;
                      // Expression undefined: add two bytes and end processing.
                         if (Patch2 != nullptr) Patch2->Type = 1, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
                         *RamP++ = Value2, *RamP++ = Value2 >> 8;
-                     } else Error("Only LD A,(n) allowed");
+                     } else Error("Only LD A,(Aw) allowed");
                   break;
-               // I,R
-                  case 0x340:
-                     if (Op1 == 0x307) *RamP++ = 0355, *RamP++ = Op2 != 0x340? 0127: 0137;
+               // I;R
+                  case _Ri:
+                     if (Op1 == _A) *RamP++ = 0355, *RamP++ = Op2 != _R? 0127: 0137;
                      else Error("Only LD A,I or LD A,R allowed");
                   break;
                   default: Error("2nd operand wrong");
                }
                break;
-            // I,R; I,R
-               case 0x340: case 0x341:
-               // A
-                  if (Op2 == 0x307) *RamP++ = 0355, *RamP++ = Op1 != 0x340? 0107: 0117;
+            // I,A;R,A
+               case _R: case _I:
+                  if (Op2 == _A) *RamP++ = 0355, *RamP++ = Op1 != _R? 0107: 0117;
                   else Error("Only LD I,A or LD R,A allowed");
                break;
-            // (BC); (DE)
-               case 0x510: case 0x511:
-               // A
-                  if (Op2 == 0x307) *RamP++ = Op1 == 0x510? 0002: 0022;
+            // (BC);(DE)
+               case _p(_BC): case _p(_DE):
+                  if (Op2 == _A) *RamP++ = Op1 == _p(_BC)? 0002: 0022;
                   else Error("Only LD (BC),A or LD (DE),A allowed");
                break;
-            // (IX+Ds); (IY+Ds)
-               case 0x630: case 0x631: switch (Op2) {
-               // B; C; D; E; H; L; A
-                  case 0x300: case 0x301: case 0x302: case 0x303: case 0x304: case 0x305: case 0x307:
-                     *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0160 | Op2&7;
+            // (IX+Ds);(IY+Ds)
+               case _x(_IX): case _x(_IY): switch (Op2) {
+               // B;C;D;E;H;L;A
+                  case _B: case _C: case _D: case _E: case _H: case _L: case _A:
+                     *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0160 | LexN(Op2);
                   // Expression undefined: add a single byte and end processing.
                      if (Patch1 != nullptr) Patch1->Type = 0, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
                      *RamP++ = Value1;
                   break;
-               // n
-                  case 0x281:
+                  case _Dw:
                      *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0066;
                   // Expression undefined: add a single byte and end processing.
                      if (Patch1 != nullptr) Patch1->Type = 0, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
@@ -463,31 +445,27 @@ static void DoOpcode(CommandP &Cmd) {
                   default: Error("2nd operand wrong");
                }
                break;
-            // (n)
-               case 0x280: switch (Op2) {
-               // A
-                  case 0x307:
+            // (Aw)
+               case _Aw: switch (Op2) {
+                  case _A:
                      *RamP++ = 0062;
                   // Expression undefined: add two bytes and end processing.
                      if (Patch1 != nullptr) Patch1->Type = 1, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
                      *RamP++ = Value1, *RamP++ = Value1 >> 8;
                   break;
-               // HL
-                  case 0x312:
+                  case _HL:
                      *RamP++ = 0042;
                   // Expression undefined: add two bytes and end processing.
                      if (Patch1 != nullptr) Patch1->Type = 1, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
                      *RamP++ = Value1, *RamP++ = Value1 >> 8;
                   break;
-               // BC; DE; SP
-                  case 0x310: case 0x311: case 0x313:
+                  case _BC: case _DE: case _SP:
                      *RamP++ = 0355, *RamP++ = 0103 | ((Op2&3) << 4);
                   // Expression undefined: add two bytes and end processing.
                      if (Patch1 != nullptr) Patch1->Type = 1, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
                      *RamP++ = Value1, *RamP++ = Value1 >> 8;
                   break;
-               // IX; IY
-                  case 0x330: case 0x331:
+                  case _IX: case _IY:
                      *RamP++ = Op2&1? 0375: 0335, *RamP++ = 0042;
                   // Expression undefined: add two bytes and end processing.
                      if (Patch1 != nullptr) Patch1->Type = 1, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
@@ -496,34 +474,25 @@ static void DoOpcode(CommandP &Cmd) {
                   default: Error("2nd operand wrong");
                }
                break;
-            // SP
-               case 0x313: switch (Op2) {
-               // HL
-                  case 0x312: *RamP++ = 0371; break;
-               // IX
-                  case 0x330: *RamP++ = 0335, *RamP++ = 0371; break;
-               // IY
-                  case 0x331: *RamP++ = 0375, *RamP++ = 0371; break;
+               case _SP: switch (Op2) {
+                  case _HL: *RamP++ = 0371; break;
+                  case _IX: *RamP++ = 0335, *RamP++ = 0371; break;
+                  case _IY: *RamP++ = 0375, *RamP++ = 0371; break;
                }
             // break; // (@)?
-            // BC; DE; HL
-               case 0x310: case 0x311: case 0x312:
-                  if (Op2 == 0x280 || Op2 == 0x281) { // (n), n
-                  // n
-                     if (Op2 == 0x281) *RamP++ = 0001 | ((Op1&3) << 4);
-                  // (n)
-                  // HL
-                     else if (Op1 == 0x312) *RamP++ = 0052;
+               case _BC: case _DE: case _HL:
+                  if (Op2 == _Aw || Op2 == _Dw) { // (Aw); Dw
+                     if (Op2 == _Dw) *RamP++ = 0001 | ((Op1&3) << 4);
+                     else if (Op1 == _HL) *RamP++ = 0052;
                      else *RamP++ = 0355, *RamP++ = 0113 | ((Op1&3) << 4);
                   // Expression undefined: add two bytes and end processing.
                      if (Patch2 != nullptr) Patch2->Type = 1, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
                      *RamP++ = Value2, *RamP++ = Value2 >> 8;
-                  } else if (Op2 != 0x312 && Op2 != 0x330 && Op2 != 0x331) Error("2nd operand wrong");
+                  } else if (Op2 != _HL && Op2 != _IX && Op2 != _IY) Error("2nd operand wrong");
                break;
-            // IX; IY
-               case 0x330: case 0x331:
-                  if (Op2 == 0x280 || Op2 == 0x281) { // (n), n
-                     *RamP++ = Op1&1? 0375: 0335, *RamP++ = Op2 == 0x281? 0041: 0052;
+               case _IX: case _IY:
+                  if (Op2 == _Aw || Op2 == _Dw) { // (Aw); Dw
+                     *RamP++ = Op1&1? 0375: 0335, *RamP++ = Op2 == _Dw? 0041: 0052;
                   // Expression undefined: add two bytes and end processing.
                      if (Patch2 != nullptr) Patch2->Type = 1, Patch2->Addr = RamP - RAM, Patch2 = nullptr;
                      *RamP++ = Value2, *RamP++ = Value2 >> 8;
@@ -533,25 +502,23 @@ static void DoOpcode(CommandP &Cmd) {
             }
          }
       break;
-   // push, pop: Rw
-      case 0x0e:
+   // push Rw; pop Rw.
+      case _StOp:
          if (Op2 != 0) Error("Too many operands");
-         else if ((Op1&0xff0) >= 0x310 && (Op1&0xff0) <= 0x33f) { // Double register?
-         // push BC,DE,HL
-            if (Op1 >= 0x310 && Op1 <= 0x312) *RamP++ = Op0a | ((Op1 - 0x310) << 4);
-         // push AF
-            else if (Op1 == 0x323) *RamP++ = Op0a | ((Op1 - 0x320) << 4);
-         // push IX,IY
-            else if (Op1 == 0x330 || Op1 == 0x331) *RamP++ = Op1&1? 0375: 0335, *RamP++ = Op0b;
+         else if (IsRbb(Op1)) { // Double register?
+         // push Rw1 (Rw1: BC,DE,HL,AF)
+            if (LexT(Op1) == _Rw && Op1 != _SP || Op1 == _AF) *RamP++ = Op0a | (LexN(Op1) << 4);
+         // push Rx (Rx: IX,IY)
+            else if (LexT(Op1) == _Rx) *RamP++ = Op1 == _IY? 0375: 0335, *RamP++ = Op0b;
          } else Error("only double-registers are allowed");
       break;
-   // rr,rl,rrc,rlc,sra,sla,srl
-      case 0x0f:
+   // ShOp D (ShOp: rr,rl,rrc,rlc,sra,sla,srl).
+      case _ShOp:
          if (Op2 != 0) Error("Only one operand allowed");
-      // B,C,D,E,H,L,(HL),A
-         else if ((Op1&0xff0) == 0x300) *RamP++ = 0313, *RamP++ = Op0a | Op1&7;
-      // (IX+Ds), (IY+Ds)
-         else if (Op1 == 0x630 || Op1 == 0x631) {
+      // B;C;D;E;H;L;(HL);A
+         else if (LexT(Op1) == _Rb) *RamP++ = 0313, *RamP++ = Op0a | LexN(Op1);
+      // (IX+Ds);(IY+Ds)
+         else if (LexT(Op1) == _x(_Rx)) {
             *RamP++ = Op1&1? 0375: 0335, *RamP++ = 0313;
          // Expression undefined: add a single byte and end processing.
             if (Patch1 != nullptr) Patch1->Type = 0, Patch1->Addr = RamP - RAM, Patch1 = nullptr;
@@ -688,9 +655,13 @@ void CompileLine(void) {
       }
    } else while (Cmd->Type != 0) { // Scan to the end of the line.
       uint16_t Value = Cmd->Value;
-   // No Opcode or Pseudo-Opcode: error.
-      if (Value < 0x100 || Value > 0x2ff) Error("Illegal token");
-   // Pseudo-Opcode or Opcode.
-      if (Value >= 0x100 && Value <= 0x1ff) DoPseudo(Cmd); else DoOpcode(Cmd);
+      switch (LexC(Value)) {
+   // Pseudo-Opcode
+         case _OpP: DoPseudo(Cmd); break;
+   // Opcode.
+         case _Op: DoOpcode(Cmd); break;
+   // Anything else: error.
+         default: Error("Illegal token");
+      }
    }
 }
