@@ -111,12 +111,12 @@
         LD      B,$03
         LD      (HL),A
         INC     HL
-        DJNZ    $01BD
+        DJNZ    $00BD
         LD      HL,$202A
         LD      B,$03
         LD      (HL),A
         INC     HL
-        DJNZ    $01C6
+        DJNZ    $00C6
         LD      A,$80
         LD      ($201D),A
         LD      ($202F),A
@@ -141,7 +141,7 @@
         LD      (DE),A
         LD      (HL),A
         DEC     DE
-        DJNZ    $01F3
+        DJNZ    $00F3
         LD      B,(IX+$11)
         DJNZ    $0101
         LD      B,$09
@@ -152,7 +152,7 @@
         LD      A,(HL)
         LD      HL,$8000
         LD      (HL),A
-        DJNZ    $020C
+        DJNZ    $010C
         CPL
         LD      ($A000),A
         LD      HL,($204C)
@@ -164,7 +164,7 @@
         RETI
         LD      ($C000),A
         HALT
-        DJNZ    $021F
+        DJNZ    $011F
         LD      HL,$15A6
         LD      DE,$2003
         LD      BC,$0006
@@ -176,7 +176,7 @@
         HALT
         HALT
         LD      ($C000),A
-        DJNZ    $0232
+        DJNZ    $0132
         CALL    $0933
         SET     2,(IX+$10)
         SET     6,(IX+$00)
@@ -224,7 +224,7 @@
         LD      (HL),A
         INC     IY
         INC     HL
-        DJNZ    $0283
+        DJNZ    $0183
         LD      B,(IX+$45)
         DJNZ    $01DE
         LD      B,$04
@@ -241,7 +241,7 @@
         INC     IY
         INC     IY
         INC     IY
-        DJNZ    $02BF
+        DJNZ    $01BF
         LD      B,$10
         LD      (IX+$45),B
         LD      HL,$1620
@@ -252,16 +252,16 @@
         CP      (HL)
         JR      Z,$01FB
         INC     HL
-        DJNZ    $02EF
+        DJNZ    $01EF
         INC     HL
         INC     HL
         LD      A,(HL)
         CP      $00
         JR      Z,$0208
-        JR      $02E4
+        JR      $01E4
         INC     DE
         INC     HL
-        DJNZ    $02E9
+        DJNZ    $01E9
         LD      D,(HL)
         INC     HL
         LD      E,(HL)
@@ -277,10 +277,10 @@
         JR      NC,$0222
         INC     A
         DEC     C
-        JR      NZ,$0312
+        JR      NZ,$0212
         INC     HL
         LD      ($C000),A
-        DJNZ    $030F
+        DJNZ    $020F
         LD      A,$FF
         CP      (IX+$0F)
         LD      (IX+$0F),A
@@ -348,7 +348,7 @@
         DEC     IY
         DEC     IY
         LD      ($C000),A
-        DJNZ    $0384
+        DJNZ    $0284
         LD      IY,$4000
         LD      DE,$2051
         LD      B,$03
@@ -377,7 +377,7 @@
         LD      (DE),A
         DEC     DE
         DEC     C
-        DJNZ    $03C2
+        DJNZ    $02C2
         RES     7,(IX+$51)
         JR      $02F6
         LD      A,$83
@@ -415,7 +415,7 @@
         INC     IY
         INC     E
         INC     E
-        DJNZ    $043B
+        DJNZ    $033B
         JR      $038C
         LD      A,(HL)
         CP      $00
@@ -466,7 +466,7 @@
         SCF
         JR      $03BB
         CP      $60
-        JR      NC,$04B0
+        JR      NC,$03B0
         CCF
         LD      (BC),A
         INC     BC
@@ -481,7 +481,7 @@
         SCF
         JR      $03CF
         CP      $60
-        JR      NC,$04C4
+        JR      NC,$03C4
         CCF
         LD      (BC),A
         INC     BC
@@ -564,7 +564,7 @@
         POP     AF
         ADD     A,$01
         CP      (IX+$3E)
-        JR      C,$0576
+        JR      C,$0476
         SET     1,(IX+$4E)
         LD      A,(IX+$3E)
         SUB     $08
@@ -629,7 +629,7 @@
         SUB     $01
         POP     BC
         CP      B
-        JR      NC,$060C
+        JR      NC,$050C
         LD      A,(IX+$3B)
         SRL     A
         ADD     A,$06
@@ -707,7 +707,7 @@
         LD      B,$06
         LD      (HL),$1F
         INC     HL
-        DJNZ    $06FF
+        DJNZ    $05FF
         JR      $063A
         CP      $42
         JR      Z,$061B
@@ -792,7 +792,7 @@
         LD      A,(HL)
         CALL    $07BA
         INC     HL
-        DJNZ    $07D8
+        DJNZ    $06D8
         LD      A,$20
         LD      (DE),A
         INC     DE
@@ -801,7 +801,7 @@
         LD      A,(HL)
         CALL    $07BA
         INC     HL
-        DJNZ    $07E8
+        DJNZ    $06E8
         LD      A,$20
         LD      (DE),A
         INC     DE
@@ -889,7 +889,7 @@
         JR      $07A6
         SET     5,A
         CALL    $07B3
-        DJNZ    $089C
+        DJNZ    $079C
         PUSH    HL
         POP     HL
         SET     5,A
@@ -928,7 +928,7 @@
         LD      (DE),A
         INC     DE
         INC     HL
-        JR      $08E3
+        JR      $07E3
         PUSH    HL
         LD      HL,$18CB
         CALL    $07E3
@@ -982,7 +982,7 @@
         LD      (HL),A
         JR      NC,$0847
         INC     HL
-        DJNZ    $093D
+        DJNZ    $083D
         RET
         RES     0,(IX+$10)
         LD      A,(IX+$00)
@@ -1067,7 +1067,7 @@
         LD      B,$06
         LD      (HL),$00
         INC     HL
-        DJNZ    $0A38
+        DJNZ    $0938
         INC     HL
         RES     0,(HL)
         INC     HL
@@ -1153,7 +1153,7 @@
         PUSH    IY
         OR      (IY-$02)
         DEC     IY
-        DJNZ    $0AFA
+        DJNZ    $09FA
         POP     IY
         CP      $00
         JR      Z,$0A0C
@@ -1244,13 +1244,13 @@
         HALT
         LD      A,($20EF)
         BIT     2,A
-        JR      NZ,$0BD8
+        JR      NZ,$0AD8
         LD      ($C000),A
         HALT
         DEC     BC
         LD      A,B
         OR      C
-        JR      NZ,$0BE0
+        JR      NZ,$0AE0
         SET     5,(IX+$00)
         JP      $0EB3
         RES     0,(IX+$10)
@@ -1392,7 +1392,7 @@
         CP      $01
         RET     NZ
         INC     HL
-        DJNZ    $0D67
+        DJNZ    $0C67
         LD      A,$55
         LD      ($20FA),A
         LD      HL,$175C
@@ -1434,7 +1434,7 @@
         DEC     IY
         DEC     IY
         INC     C
-        DJNZ    $0DAF
+        DJNZ    $0CAF
         LD      A,(IY-$01)
         ADD     A,A
         ADD     A,A
@@ -1482,7 +1482,7 @@
         LD      (DE),A
         DEC     DE
         INC     HL
-        DJNZ    $0E07
+        DJNZ    $0D07
         LD      (IX+$12),$EB
         LD      ($C000),A
         RET
@@ -1516,7 +1516,7 @@
         PUSH    IY
         OR      (IY-$03)
         DEC     IY
-        DJNZ    $0E5D
+        DJNZ    $0D5D
         POP     IY
         CP      $00
         JR      Z,$0D6F
@@ -1578,7 +1578,7 @@
         ADD     HL,HL
         ADD     HL,HL
         INC     DE
-        DJNZ    $0ECA
+        DJNZ    $0DCA
         EX      DE,HL
         LD      (HL),$1F
         INC     HL
@@ -1616,7 +1616,7 @@
         LD      (HL),E
         CALL    $0E75
         LD      (HL),D
-        DJNZ    $0F0C
+        DJNZ    $0E0C
         JR      $0E30
         SET     6,D
         SET     6,E
@@ -1625,7 +1625,7 @@
         LD      (HL),E
         CALL    $0E75
         LD      (HL),D
-        DJNZ    $0F0C
+        DJNZ    $0E0C
         LD      B,$08
         LD      (HL),E
         CALL    $0E75
@@ -1653,7 +1653,7 @@
         SET     0,A
         LD      (HL),E
         CALL    $0E75
-        DJNZ    $0F4E
+        DJNZ    $0E4E
         SET     7,E
         SET     6,E
         LD      (IX+$4E),E
@@ -1696,7 +1696,7 @@
         ADD     HL,HL
         ADD     HL,HL
         INC     DE
-        DJNZ    $0FA4
+        DJNZ    $0EA4
         LD      ($C000),A
         RET
         LD      HL,$204F
@@ -1717,7 +1717,7 @@
         LD      (IY+$02),A
         INC     HL
         DEC     C
-        DJNZ    $0FD3
+        DJNZ    $0ED3
         RES     5,(IX+$00)
         LD      ($C000),A
         RET
@@ -1753,7 +1753,7 @@
         INC     DE
         INC     DE
         INC     DE
-        DJNZ    $0FE8
+        DJNZ    $0EE8
         LD      ($C000),A
         RET
         PUSH    DE
@@ -1798,7 +1798,7 @@
         SET     0,C
         INC     HL
         INC     DE
-        DJNZ    $104D
+        DJNZ    $0F4D
         LD      ($C000),A
         BIT     0,C
         RET
@@ -1873,7 +1873,7 @@
         ADD     HL,HL
         ADD     HL,HL
         INC     DE
-        DJNZ    $1106
+        DJNZ    $1006
         LD      ($C000),A
         RET
         LD      HL,$2009
@@ -1907,14 +1907,14 @@
         LD      B,A
         LD      DE,$0064
         ADD     HL,DE
-        DJNZ    $1151
+        DJNZ    $1051
         LD      A,(IY-$01)
         CP      $00
         JR      Z,$1062
         LD      B,A
         LD      DE,$000A
         ADD     HL,DE
-        DJNZ    $115F
+        DJNZ    $105F
         LD      E,(IY+$00)
         LD      D,$00
         ADD     HL,DE
@@ -1931,7 +1931,7 @@
         JR      C,$1089
         DEC     HL
         DEC     HL
-        DJNZ    $1180
+        DJNZ    $1080
         RET
         XOR     A
         LD      A,(DE)
@@ -1947,7 +1947,7 @@
         DEC     HL
         DEC     DE
         LD      ($C000),A
-        DJNZ    $1180
+        DJNZ    $1080
         RET
         BIT     4,(IX+$01)
         JP      Z,$1163
@@ -1989,7 +1989,7 @@
         LD      B,$06
         LD      (HL),$00
         INC     HL
-        DJNZ    $1210
+        DJNZ    $1110
         LD      (IX+$12),$FE
         LD      A,(IX+$5E)
         AND     $0F
@@ -2006,7 +2006,7 @@
         LD      HL,$2009
         OR      (HL)
         INC     HL
-        DJNZ    $1237
+        DJNZ    $1137
         JR      NZ,$1159
         LD      IY,$200E
         CALL    $1043
@@ -2042,7 +2042,7 @@
         JR      $118E
         LD      B,A
         ADD     HL,DE
-        DJNZ    $128B
+        DJNZ    $118B
         BIT     7,(IX+$00)
         JP      NZ,$0CF3
         LD      A,(IX+$09)
@@ -2117,7 +2117,7 @@
         PUSH    IY
         OR      (IY-$03)
         DEC     IY
-        DJNZ    $134B
+        DJNZ    $124B
         POP     IY
         CP      $00
         JR      Z,$125D
@@ -2219,7 +2219,7 @@
         PUSH    IY
         OR      (IY-$03)
         DEC     IY
-        DJNZ    $1441
+        DJNZ    $1341
         POP     IY
         CP      $00
         JR      Z,$1353
@@ -2263,7 +2263,7 @@
         PUSH    IY
         OR      (IY-$03)
         DEC     IY
-        DJNZ    $14A3
+        DJNZ    $13A3
         POP     IY
         CP      $00
         JR      Z,$13B5
@@ -2413,12 +2413,12 @@
         ADD     HL,HL
         LD      A,H
         CP      $FF
-        JR      Z,$15E1
+        JR      Z,$14E1
         BIT     7,L
         JR      Z,$14F5
         INC     A
         CP      $FF
-        JR      Z,$15E1
+        JR      Z,$14E1
         LD      (IX+$65),A
         RET
         LD      ($C000),A
@@ -2426,7 +2426,7 @@
         LD      HL,$2026
         LD      (HL),$00
         DEC     HL
-        DJNZ    $1601
+        DJNZ    $1501
         LD      B,$08
         LD      HL,$2021
         LD      DE,$2024
@@ -2451,7 +2451,7 @@
         RL      (HL)
         INC     HL
         RL      (HL)
-        DJNZ    $1608
+        DJNZ    $1508
         LD      ($C000),A
         RET
         LD      A,$00
@@ -2475,15 +2475,15 @@
         JR      Z,$155B
         RR      C
         DEC     IY
-        DJNZ    $164F
+        DJNZ    $154F
         RET
         INC     D
         DJNZ    $155F
         RET
         RR      C
         BIT     0,C
-        JR      NZ,$165C
-        JR      $165B
+        JR      NZ,$155C
+        JR      $155B
         RRA
         INC     DE
         LD      C,$1C
@@ -2710,7 +2710,7 @@
         LD      B,$09
         LD      (HL),$00
         INC     HL
-        DJNZ    $17AB
+        DJNZ    $16AB
         LD      HL,$164D
         LD      DE,$20E9
         LD      B,$07
@@ -2720,9 +2720,9 @@
         JR      NZ,$16C7
         INC     HL
         INC     DE
-        DJNZ    $17B8
+        DJNZ    $16B8
         LD      ($C000),A
-        JR      $17B0
+        JR      $16B0
         CALL    $0933
         SET     6,(IX+$00)
         RET
@@ -2734,7 +2734,7 @@
         LD      A,$01
         CALL    $16F7
         SLA     A
-        DJNZ    $17DC
+        DJNZ    $16DC
         SLA     A
         CALL    $16F7
         SRL     A
@@ -2749,7 +2749,7 @@
         LD      B,$00
         LD      ($C000),A
         HALT
-        DJNZ    $17FD
+        DJNZ    $16FD
         POP     BC
         RET
         LD      A,(BC)

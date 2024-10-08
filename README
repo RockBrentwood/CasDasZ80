@@ -3,7 +3,7 @@ CasDasZ80
 Included in this repository is the source code for a Z80 assembler and disassembler,
 as well as tables, in HTML, for the opcode formats formats for:
 	8080, 8085, Z80, 8088
-The assmbler and disassembler are being remade as the CAS assembler and DAS disassembler,
+The assembler and disassembler are being remade as the CAS assembler and DAS disassembler,
 currently in the CPU repository under csd4-archive for the 8051,
 as part of the process of porting the CAS and DAS to the 8080/8085/Z80 and even 8086/8088.
 
@@ -24,7 +24,7 @@ There is enough congruence in their designs to facilitate the migration to DAS.
 This program should compile with any C++ compiler.
 It only uses some ANSI C functions (look into ‟main()”).
 C++98 should be sufficient, compatibility should continue to hold for C++11 on up, for future changes.
-Current program versions can be compiled successfully with ‟gcc”.
+Current program versions can be compiled successfully with ‟g++”.
 Z80DisAssembler has also compiled with ‟clang” without warnings, therefore DasZ80 should, as well.
 
 This program is freeware.

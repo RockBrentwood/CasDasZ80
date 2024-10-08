@@ -28,21 +28,21 @@ enum Lexical {
 enum PseudoT { _db = 0x100, _dm, _ds, _dw, _end, _equ, _org, _if, _endif, _else, _print, _fill };
 
 // Mnemonic operators and operator classes.
-// _POp		in A,(P); out (P),A.
+// _POp		in A,(Pb); out (Pb),A.
 // _UnOp	one byte opcode, no parameter.
 // _BinOp	two byte opcode, no parameter.
 // _OpHL	two byte opcode, (HL) required; i.e. rrd (HL); rld (HL).
-// _BitOp	bit n,Rb; res n,Rb; set n,Rb
-// _im		im n (n	0,1,2).
-// _AOp		AOp D,S (AOp	add,adc,sub,sbc,and,xor,or,cp).
-// _IOp		IOp D (IOp	inc,dec), like _AOp with absolute address.
+// _BitOp	BitOp n,Rb (BitOp: bit,res,set).
+// _im		im n (n: 0,1,2).
+// _AOp		AOp D,S (AOp: add,adc,sub,sbc,and,xor,or,cp).
+// _IOp		IOp D (IOp: inc,dec), like _AOp with absolute address.
 // _RefOp	jp [Cc,]Aw; call [Cc,]Aw; jr [Cc,]Js
 // _ret		ret [Cc]
-// _rst		rst n (n	00,08,10,18,20,28,30,38).
+// _rst		rst n (n: 00,08,10,18,20,28,30,38).
 // _djnz	djnz Js.
 // _ex		ex (SP),Rw; ex DE,HL; ex AF,AF'.
 // _ld		ld D,S.
-// _StOp	push Rw; pop Rw.
+// _StOp	StOp Rw (StOp: push,pop).
 // _ShOp	ShOp D (ShOp: rr,rl,rrc,rlc,sra,sla,srl).
 enum MnemonicT { _POp = 0x200, _UnOp, _BinOp, _OpHL, _BitOp, _im, _AOp, _IOp, _RefOp, _ret, _rst, _djnz, _ex, _ld, _StOp, _ShOp };
 

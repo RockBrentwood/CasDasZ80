@@ -3,15 +3,9 @@
 <title>Intel 8088 OPCODES</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <style type="text/css">
-table.withborder { border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse; }
-td.withborder { border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse; }
-a:link { text-decoration: none; color: #2018A0; }
-a:visited { text-decoration: none; color: #2018A0; }
-a:active { text-decoration: none; color: #2018A0; }
-a:hover { text-decoration: none; color: #4030FF; }
-sub { font-size: 8pt; }
-sup { font-size: 8pt; }
-hr { height: 1px; color: black; }
+table.withborder { border-collapse: collapse; }
+tr { font-family: "ui-monospace"; font-size: 8pt; align: center }
+td.withborder { border-width: 1px; border-style: solid; border-color: grey; border-collapse: collapse; }
 </style>
 </head>
 <body bgcolor="#dfdfdf">
@@ -20,15 +14,15 @@ hr { height: 1px; color: black; }
 <caption><b><font size=+2>Main Table</font></b></caption>
 <tbody><tr style="font-family: monospace; font-size: 8pt" align="center" bgcolor="#9f9f9f">
 <td class="withborder" style="width: 3em"></td>
-<td class="withborder" style="width: 13em"><b>x0</b></td>
-<td class="withborder" style="width: 13em"><b>x1</b></td>
-<td class="withborder" style="width: 13em"><b>x2</b></td>
-<td class="withborder" style="width: 13em"><b>x3</b></td>
-<td class="withborder" style="width: 13em"><b>x4</b></td>
-<td class="withborder" style="width: 13em"><b>x5</b></td>
-<td class="withborder" style="width: 13em"><b>x6</b></td>
-<td class="withborder" style="width: 13em"><b>x7</b></td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>00x</b></td>
+<td class="withborder" style="width: 13em"><b>xy0</b></td>
+<td class="withborder" style="width: 13em"><b>xy1</b></td>
+<td class="withborder" style="width: 13em"><b>xy2</b></td>
+<td class="withborder" style="width: 13em"><b>xy3</b></td>
+<td class="withborder" style="width: 13em"><b>xy4</b></td>
+<td class="withborder" style="width: 13em"><b>xy5</b></td>
+<td class="withborder" style="width: 13em"><b>xy6</b></td>
+<td class="withborder" style="width: 13em"><b>xy7</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>00z</b></td>
 <td class="withborder" bgcolor="#ffff99">add Eb,Rb<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">add Ew,Rw<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">add Rb,Eb<br/>3/13 (O∙∙∙SZAPC)</td>
@@ -37,7 +31,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">add AX,Iw<br/>4 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ccccff">push ES<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">pop ES<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>01x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>01z</b></td>
 <td class="withborder" bgcolor="#ffff99">or Eb,Rb<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">or Ew,Rw<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">or Rb,Eb<br/>3/13 (O∙∙∙SZAPC)</td>
@@ -46,7 +40,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">or AX,Iw<br/>4 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ccccff">push CS<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">*pop CS<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>02x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>02z</b></td>
 <td class="withborder" bgcolor="#ffff99">adc Eb,Rb<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">adc Ew,Rw<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">adc Rb,Eb<br/>3/13 (O∙∙∙SZAPC)</td>
@@ -55,7 +49,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">adc AX,Iw<br/>4 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ccccff">push SS<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">pop SS<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>03x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>03z</b></td>
 <td class="withborder" bgcolor="#ffff99">sbb Eb,Rb<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">sbb Ew,Rw<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">sbb Rb,Eb<br/>3/13 (O∙∙∙SZAPC)</td>
@@ -64,7 +58,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">sbb AX,Iw<br/>4 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ccccff">push DS<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">pop DS<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>04x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>04z</b></td>
 <td class="withborder" bgcolor="#ffff99">and Eb,Rb<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">and Ew,Rw<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">and Rb,Eb<br/>3/13 (O∙∙∙SZAPC)</td>
@@ -73,7 +67,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">and AX,Iw<br/>4 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#9999ff">ES:<br/>2 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffff99">daa<br/>4 (O∙∙∙SZAPC)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>05x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>05z</b></td>
 <td class="withborder" bgcolor="#ffff99">sub Eb,Rb<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">sub Ew,Rw<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">sub Rb,Eb<br/>3/13 (O∙∙∙SZAPC)</td>
@@ -82,7 +76,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">sub AX,Iw<br/>4 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#9999ff">CS:<br/>2 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffff99">das<br/>4 (O∙∙∙SZAPC)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>06x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>06z</b></td>
 <td class="withborder" bgcolor="#ffff99">xor Eb,Rb<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">xor Ew,Rw<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">xor Rb,Eb<br/>3/13 (O∙∙∙SZAPC)</td>
@@ -91,7 +85,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">xor AX,Iw<br/>4 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#9999ff">SS:<br/>2 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffff99">aaa<br/>8 (O∙∙∙SZAPC)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>07x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>07z</b></td>
 <td class="withborder" bgcolor="#ffff99">cmp Eb,Rb<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">cmp Ew,Rw<br/>3/24 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">cmp Rb,Eb<br/>3/13 (O∙∙∙SZAPC)</td>
@@ -100,7 +94,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">cmp AX,Iw<br/>4 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#9999ff">DS:<br/>2 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffff99">aas<br/>8 (O∙∙∙SZAPC)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>10x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>10z</b></td>
 <td class="withborder" bgcolor="#ffff99">inc AX<br/>3 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ffff99">inc CX<br/>3 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ffff99">inc DX<br/>3 (O∙∙∙SZAP∙)</td>
@@ -109,7 +103,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">inc BP<br/>3 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ffff99">inc SI<br/>3 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ffff99">inc DI<br/>3 (O∙∙∙SZAP∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>11x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>11z</b></td>
 <td class="withborder" bgcolor="#ffff99">dec AX<br/>3 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ffff99">dec CX<br/>3 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ffff99">dec DX<br/>3 (O∙∙∙SZAP∙)</td>
@@ -118,7 +112,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">dec BP<br/>3 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ffff99">dec SI<br/>3 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ffff99">dec DI<br/>3 (O∙∙∙SZAP∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>12x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>12z</b></td>
 <td class="withborder" bgcolor="#ccccff">push AX<br/>15 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">push CX<br/>15 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">push DX<br/>15 (∙∙∙∙∙∙∙∙∙)</td>
@@ -127,7 +121,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccccff">push BP<br/>15 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">push SI<br/>15 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">push DI<br/>15 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>13x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>13z</b></td>
 <td class="withborder" bgcolor="#ccccff">pop AX<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">pop CX<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">pop DX<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
@@ -136,7 +130,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccccff">pop BP<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">pop SI<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">pop DI<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>14x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>14z</b></td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
@@ -145,7 +139,7 @@ hr { height: 1px; color: black; }
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>15x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>15z</b></td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
@@ -154,7 +148,7 @@ hr { height: 1px; color: black; }
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>16x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>16z</b></td>
 <td class="withborder" bgcolor="#ffcc99">jo Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jno Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jb/jnae Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
@@ -163,7 +157,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffcc99">jne/jnz Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jbe/jna Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jnbe/ja Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>17x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>17z</b></td>
 <td class="withborder" bgcolor="#ffcc99">js Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jns Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jp/jpe Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
@@ -172,7 +166,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffcc99">jnl/jge Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jle/jng Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jnle/jg Js<br/>16/4 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>20x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>20z</b></td>
 <td class="withborder" bgcolor="#99ffff" title="add Eb,Ib | or Eb,Ib | adc Eb,Ib | sbb Eb,Ib | and Eb,Ib | sub Eb,Ib | xor Eb,Ib | cmp Eb,Ib">Gp1 Eb,Ib<br/>4/23 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#99ffff" title="add Ew,Iw | or Ew,Iw | adc Ew,Iw | sbb Ew,Iw | and Ew,Iw | sub Ew,Iw | xor Ew,Iw | cmp Ew,Iw">Gp1 Ew,Iw<br/>4/23 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#99ffff" title="*add Eb,Ib | *or Eb,Ib | *adc Eb,Ib | *sbb Eb,Ib | *and Eb,Ib | *sub Eb,Ib | *xor Eb,Ib | *cmp Eb,Ib">*Gp1 Eb,Is<br/>4/23 (O∙∙∙SZAPC)</td>
@@ -181,7 +175,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">test Ew,Rw<br/>3/13 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ccccff">xchg Rb,Eb<br/>4/25 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">xchg Rw,Ew<br/>4/25 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>21x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>21z</b></td>
 <td class="withborder" bgcolor="#ccccff">mov Eb,Rb<br/>2/13 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov Ew,Rw<br/>2/13 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov Rb,Eb<br/>2/12 (∙∙∙∙∙∙∙∙∙)</td>
@@ -190,7 +184,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccccff">lea Rw,Ew<br/>2 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#99ffff" title="mov ES,Ew | mov CS,Ew | mov SS,Ew | mov DS,Ew | ---|--- | --- | ---">Gp2 Rs,Ew<br/>2/12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#99ffff" title="pop Ew | --- | --- | --- | --- | --- | --- | ---">Gp3 Ew<br/>12/25 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>22x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>22z</b></td>
 <td class="withborder" bgcolor="#ff99cc">nop<br/>3 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">xchg AX,CX<br/>3 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">xchg AX,DX<br/>3 (∙∙∙∙∙∙∙∙∙)</td>
@@ -199,7 +193,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccccff">xchg AX,BP<br/>3 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">xchg AX,SI<br/>3 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">xchg AX,DI<br/>3 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>23x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>23z</b></td>
 <td class="withborder" bgcolor="#ffff99">cbw<br/>2 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffff99">cwd<br/>5 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">call Af<br/>36 (∙∙∙∙∙∙∙∙∙)</td>
@@ -208,7 +202,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccccff">popf<br/>12 (ODITSZAPC)</td>
 <td class="withborder" bgcolor="#ccccff">sahf<br/>4 (∙∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ccccff">lahf<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>24x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>24z</b></td>
 <td class="withborder" bgcolor="#ccccff">mov AL,[Aw]<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov AX,[Aw]<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov [Aw],AL<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
@@ -217,7 +211,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccffcc">movsw<br/>26/9[25] (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccffcc">cmpsb<br/>22/9[22] (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ccffcc">cmpsw<br/>30/9[30] (O∙∙∙SZAPC)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>25x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>25z</b></td>
 <td class="withborder" bgcolor="#ffff99">test AL,Ib<br/>4 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ffff99">test AX,Iw<br/>4 (O∙∙∙SZAP∙)</td>
 <td class="withborder" bgcolor="#ccffcc">stosb<br/>11/9[10] (∙∙∙∙∙∙∙∙∙)</td>
@@ -226,7 +220,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccffcc">lodsw<br/>16/9[17] (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccffcc">scasb<br/>15/9[15] (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ccffcc">scasw<br/>19/9[19] (O∙∙∙SZAPC)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>26x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>26z</b></td>
 <td class="withborder" bgcolor="#ccccff">mov AL,Ib<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov CL,Ib<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov DL,Ib<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
@@ -235,7 +229,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccccff">mov CH,Ib<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov DH,Ib<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov BH,Ib<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>27x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>27z</b></td>
 <td class="withborder" bgcolor="#ccccff">mov AX,Iw<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov CX,Iw<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov DX,Iw<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
@@ -244,7 +238,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccccff">mov BP,Iw<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov SI,Iw<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">mov DI,Iw<br/>4 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>30x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>30z</b></td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder" bgcolor="#ffcc99">ret Iw<br/>24 (∙∙∙∙∙∙∙∙∙)</td>
@@ -253,7 +247,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ccccff">lds Rw,Mf<br/>24+ (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#99ffff" title="mov Eb,Ib | --- | --- | --- | --- | --- | --- | ---">Gp4 Eb,Ib<br/>4/14 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#99ffff" title="mov Ew,Iw | --- | --- | --- | --- | --- | --- | ---">Gp4 Ew,Iw<br/>4/14 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>31x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>31z</b></td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder" bgcolor="#ffcc99">retf Iw<br/>34 (∙∙∙∙∙∙∙∙∙)</td>
@@ -262,7 +256,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ff99cc">int Ib<br/>71 (OD∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">into<br/>73/4 (OD∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">iret<br/>44 (ODITSZAPC)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>32x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>32z</b></td>
 <td class="withborder" bgcolor="#99ffff" title="rol Eb,1 | ror Eb,1 | rcl Eb,1 | rcr Eb,1 | shl/sal Eb,1 | shr Eb,1 | *shl/*sal Eb,1 | sar Eb,1">Gp5 Eb,1<br/>2/23 (O∙∙∙????C)</td>
 <td class="withborder" bgcolor="#99ffff" title="rol Ew,1 | ror Ew,1 | rcl Ew,1 | rcr Ew,1 | shl/sal Ew,1 | shr Ew,1 | *shl/*sal Ew,1 | sar Ew,1">Gp5 Ew,1<br/>2/23 (O∙∙∙????C)</td>
 <td class="withborder" bgcolor="#99ffff" title="rol Eb,CL | ror Eb,CL | rcl Eb,CL | rcr Eb,CL | shl/sal Eb,CL | shr Eb,CL | *shl/*sal Eb,CL | sar Eb,CL">Gp5 Eb,CL<br/>8/28[4] (O∙∙∙????C)</td>
@@ -271,7 +265,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">aad *Ib<br/>60 (O∙∙∙SZAPC)</td>
 <td class="withborder" bgcolor="#ffff99">*salc<br/>2 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ccccff">xlat<br/>11 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>33x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>33z</b></td>
 <td class="withborder" bgcolor="#ff99cc">Esc 0,Op,Ea<br/>2/12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">Esc 1,Op,Ea<br/>2/12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">Esc 2,Op,Ea<br/>2/12 (∙∙∙∙∙∙∙∙∙)</td>
@@ -280,7 +274,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ff99cc">Esc 5,Op,Ea<br/>2/12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">Esc 6,Op,Ea<br/>2/12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">Esc 7,Op,Ea<br/>2/12 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>34x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>34z</b></td>
 <td class="withborder" bgcolor="#ffcc99">loopnz/loopne Js<br/>18/6 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">loopz/loope Js<br/>18/6 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">loop Js<br/>17/5 (∙∙∙∙∙∙∙∙∙)</td>
@@ -289,7 +283,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ff99cc">in AX,[Ib]<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">out [Ib],AL<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">out [Ib],AX<br/>14 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>35x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>35z</b></td>
 <td class="withborder" bgcolor="#ffcc99">call Jw<br/>23 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jmp Jw<br/>15 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ffcc99">jmp Af<br/>15 (∙∙∙∙∙∙∙∙∙)</td>
@@ -298,7 +292,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ff99cc">in AX,[DX]<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">out [DX],AL<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder" bgcolor="#ff99cc">out [DX],AX<br/>12 (∙∙∙∙∙∙∙∙∙)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>36x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>36z</b></td>
 <td class="withborder" bgcolor="#9999ff">lock<br/>2 (∙∙∙∙∙∙∙∙∙)</td>
 <td class="withborder">―<br/>―</td>
 <td class="withborder" bgcolor="#9999ff">repne/repnz<br/>0 (∙∙∙∙∙∙∙∙∙)</td>
@@ -307,7 +301,7 @@ hr { height: 1px; color: black; }
 <td class="withborder" bgcolor="#ffff99">cmc<br/>2 (∙∙∙∙∙∙∙∙C)</td>
 <td class="withborder" bgcolor="#99ffff" title="test Eb,Ib | *test Eb,Ib | not Eb | neg Eb | mul Eb | imul Eb | div Eb | idiv Eb">Gp6 Eb,Ib<br/>? (?∙∙∙?????)</td>
 <td class="withborder" bgcolor="#99ffff" title="test Ew,Iw | *test Ew,Iw | not Ew | neg Ew | mul Ew | imul Ew | div Ew | idiv Ew">Gp6 Ew,Iw<br/>? (?∙∙∙?????)</td>
-</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>37x</b></td>
+</tr><tr style="font-family: monospace; font-size: 8pt" align="center"><td class="withborder" bgcolor="#9f9f9f"><b>37z</b></td>
 <td class="withborder" bgcolor="#ffff99">clc<br/>2 (∙∙∙∙∙∙∙∙C)</td>
 <td class="withborder" bgcolor="#ffff99">stc<br/>2 (∙∙∙∙∙∙∙∙C)</td>
 <td class="withborder" bgcolor="#ff99cc">cli<br/>2 (∙∙I∙∙∙∙∙∙)</td>
