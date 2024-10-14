@@ -390,15 +390,17 @@ MainOp:
                      case 0064: Ds = GetDs(IP), Ds >= 0? Gen("INC     (%s+$%2.2X)", Rx, Ds): Gen("INC     (%s-$%2.2X)", Rx, -Ds); break;
                      case 0065: Ds = GetDs(IP), Ds >= 0? Gen("DEC     (%s+$%2.2X)", Rx, Ds): Gen("DEC     (%s-$%2.2X)", Rx, -Ds); break;
                      case 0066: Ds = GetDs(IP), Ds >= 0? Gen("LD      (%s+$%2.2X),$%2.2X", Rx, Ds, GetB(IP)): Gen("LD      (%s-$%2.2X),$%2.2X", Rx, -Ds, GetB(IP)); break;
-                     case 0144: case 0154: Gen("LD      %s%s,%sH", Rx, Rb[Y], Rx); break;
-                     case 0145: case 0155: Gen("LD      %s%s,%sL", Rx, Rb[Y], Rx); break;
+                     case 0144: Gen("LD      %sH,%sH", Rx, Rx); break;
+                     case 0145: Gen("LD      %sH,%sL", Rx, Rx); break;
+                     case 0154: Gen("LD      %sL,%sH", Rx, Rx); break;
+                     case 0155: Gen("LD      %sL,%sL", Rx, Rx); break;
                      case 0104: case 0114: case 0124: case 0134: case 0174: Gen("LD      %s,%sH", Rb[Y], Rx); break;
                      case 0105: case 0115: case 0125: case 0135: case 0175: Gen("LD      %s,%sL", Rb[Y], Rx); break;
                      case 0106: case 0116: case 0126: case 0136: case 0146: case 0156: case 0176:
                         Ds = GetDs(IP), Ds >= 0? Gen("LD      %s,(%s+$%2.2X)", Rb[Y], Rx, Ds): Gen("LD      %s,(%s-$%2.2X)", Rb[Y], Rx, -Ds);
                      break;
-                     case 0140: case 0141: case 0142: case 0143: case 0147: Gen("LD      %sH,%s", Rx, Rb[Y]); break;
-                     case 0150: case 0151: case 0152: case 0153: case 0157: Gen("LD      %sL,%s", Rx, Rb[Y]); break;
+                     case 0140: case 0141: case 0142: case 0143: case 0147: Gen("LD      %sH,%s", Rx, Rb[Z]); break;
+                     case 0150: case 0151: case 0152: case 0153: case 0157: Gen("LD      %sL,%s", Rx, Rb[Z]); break;
                      case 0160: case 0161: case 0162: case 0163: case 0164: case 0165: case 0167:
                         Ds = GetDs(IP), Ds >= 0? Gen("LD      (%s+$%2.2X),%s", Rx, Ds, Rb[Z]): Gen("LD      (%s-$%2.2X),%s", Rx, -Ds, Rb[Z]);
                      break;
@@ -417,10 +419,10 @@ MainOp:
                         Op = GetB(IP), X = (Op >> 6)&3, Y = (Op >> 3)&7, Z = Op&7; // Fetch the tertiary opcode.
                         switch (Z) {
                            default: switch (X) {
-                              case 0: Ds >= 0? Gen("%-8s(%s+$%2.2X),%s", ShOp[Y], Rx, Ds, Rb[X]): Gen("%-8s(%s-$%2.2X),%s", ShOp[Y], Rx, -Ds, Rb[X]); break;
-                              case 1: Ds >= 0? Gen("BIT     %d,(%s+$%2.2X),%s", Y, Rx, Ds, Rb[X]): Gen("BIT     %d,(%s-$%2.2X),%s", Y, Rx, -Ds, Rb[X]); break;
-                              case 2: Ds >= 0? Gen("RES     %d,(%s+$%2.2X),%s", Y, Rx, Ds, Rb[X]): Gen("RES     %d,(%s-$%2.2X),%s", Y, Rx, -Ds, Rb[X]); break;
-                              case 3: Ds >= 0? Gen("SET     %d,(%s+$%2.2X),%s", Y, Rx, Ds, Rb[X]): Gen("SET     %d,(%s-$%2.2X),%s", Y, Rx, -Ds, Rb[X]); break;
+                              case 0: Ds >= 0? Gen("%-8s(%s+$%2.2X),%s", ShOp[Y], Rx, Ds, Rb[Z]): Gen("%-8s(%s-$%2.2X),%s", ShOp[Y], Rx, -Ds, Rb[Z]); break;
+                              case 1: Ds >= 0? Gen("BIT     %d,(%s+$%2.2X),%s", Y, Rx, Ds, Rb[Z]): Gen("BIT     %d,(%s-$%2.2X),%s", Y, Rx, -Ds, Rb[Z]); break;
+                              case 2: Ds >= 0? Gen("RES     %d,(%s+$%2.2X),%s", Y, Rx, Ds, Rb[Z]): Gen("RES     %d,(%s-$%2.2X),%s", Y, Rx, -Ds, Rb[Z]); break;
+                              case 3: Ds >= 0? Gen("SET     %d,(%s+$%2.2X),%s", Y, Rx, Ds, Rb[Z]): Gen("SET     %d,(%s-$%2.2X),%s", Y, Rx, -Ds, Rb[Z]); break;
                            }
                            break;
                            case 6: switch (X) {

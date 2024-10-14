@@ -10,7 +10,7 @@ PatchListP LastPatch; // To patch the type for incomplete formulas.
 // Indirect recursion.
 static int32_t GetExp0(CommandP &Cmd);
 
-// Get a symbol, number or bracket
+// Get a symbol, number or bracket.
 static int32_t GetExp3(CommandP &Cmd) {
    int32_t Value = 0;
    switch (Cmd->Type) {

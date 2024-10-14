@@ -498,7 +498,7 @@ static void DoOpcode(CommandP &Cmd) {
             }
          }
       break;
-   // push Rw; pop Rw.
+   // StOp Rw (StOp: push, pop).
       case _StOp:
          if (Op2 != 0) Error("Too many operands");
          else if (IsRbb(Op1)) { // Double register?
@@ -526,7 +526,7 @@ static void DoOpcode(CommandP &Cmd) {
          for (; Cmd->Type != 0; Cmd++);
    }
    CurPC = RamP - RAM; // PC -> next opcode
-   CheckPC(CurPC - 1); // The last RAM position used>
+   CheckPC(CurPC - 1); // The last RAM position used.
 }
 
 // Test for pseudo-opcodes.
