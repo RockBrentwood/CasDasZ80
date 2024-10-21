@@ -180,6 +180,7 @@ static void OpScan(uint16_t IP) {
          case 0335: case 0375: goto MainOp;
       // retn; reti
          case 0355: switch (Op = GetB(IP)) {
+            case 0125: case 0135: case 0145: case 0155: case 0165: case 0175:
             case 0105: case 0115: return;
          }
          break;
@@ -625,10 +626,10 @@ int main(int AC, char *AV[]) {
       } else {
          uint32_t N = OpLen(IP); // Get the opcode length.
          if (!DoHex) {
-            if (Mode[IP]&0x10) fprintf(ExF, "%c%4.4X:  ", DoParse? 'L': '$', IP);
+            if (Mode[IP]&0x10) fprintf(ExF, "%c%4.4X:  ", NumPre, IP);
             else fprintf(ExF, "        ");
          } else {
-            fprintf(ExF, "%c%4.4X   ", DoParse? 'L': '$', (uint16_t)IP);
+            fprintf(ExF, "%c%4.4X   ", NumPre, (uint16_t)IP);
             for (uint32_t n = 0; n < N; n++) fprintf(ExF, "%2.2X ", Code[IP + n]);
             for (uint32_t n = 4; n > N; n--) fprintf(ExF, "   ");
             fprintf(ExF, "    ");
